@@ -3,6 +3,11 @@ namespace Stanford\LampStudyPortal;
 
 require_once "emLoggerTrait.php";
 
+/**
+ * Class LampStudyPortal
+ * @package Stanford\LampStudyPortal
+ * @param
+ */
 class LampStudyPortal extends \ExternalModules\AbstractExternalModule {
 
     use emLoggerTrait;
