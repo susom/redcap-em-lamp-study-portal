@@ -1,7 +1,7 @@
 {
-	"name": "ClassNameHere",
+	"name": "LAMP Study Portal",
 
-	"namespace": "Stanford\\ClassNameHere",
+	"namespace": "Stanford\\LampStudyPortal",
 
 	"description": "A template for a REDCap External Module",
 
@@ -20,8 +20,8 @@
 		"redcap_module_project_enable",
 		"redcap_module_save_configuration"
 	],
-	
-	"enable-every-page-hooks-on-system-pages": false,	
+
+	"enable-every-page-hooks-on-system-pages": false,
 
 	"links": {
 		"project": [
