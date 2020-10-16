@@ -3,7 +3,14 @@
 
 namespace Stanford\LampStudyPortal;
 
+use \GuzzleHttp\Client;
+use Sabre\VObject\Cli;
 
+/**
+ * Class Media
+ * @package Stanford\LampStudyPortal
+ * @property \GuzzleHttp\Client $client;
+ */
 class Media
 {
     /** @var string $id */
@@ -21,8 +28,16 @@ class Media
     /** @var string $title */
     private $title;
 
-    public function __construct() {
-        parent::__construct();
+    /**
+     * @var Client $client
+     */
+    private $client;
+
+    public function __construct()
+    {
+
+        $this->setClient(new Client());
+
         // Other code to run when object is instantiated
     }
 
@@ -106,6 +121,21 @@ class Media
         $this->title = $title;
     }
 
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
+     * @param Client $client
+     */
+    public function setClient(Client $client)
+    {
+        $this->client = $client;
+    }
 
 
 }

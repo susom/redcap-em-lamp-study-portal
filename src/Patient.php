@@ -2,8 +2,9 @@
 
 namespace Stanford\LampStudyPortal;
 
+use Sabre\VObject\Cli;
 use Stanford\LampStudyPortal\Task;
-
+use \GuzzleHttp\Client;
 /**
  * Class Patient
  * @package Stanford\LampStudyPortal
@@ -55,17 +56,23 @@ class Patient
     /** @var string $mobile_number_verified */
     private $mobile_number_verified;
 
-    /** @var array $tasks */
+    /** @var \Stanford\LampStudyPortal\Task $tasks */
     private $tasks;
+
+    /** @var Client $client */
+    private $client;
 
     /**
      * Patient constructor.
      */
-    public function __construct($uuid) {
+    public function __construct($uuid)
+    {
         parent::__construct();
         // Other code to run when object is instantiated
         $this->$uuid = $uuid;
         $this->tasks = array();
+
+        $this->setClient(new Client());
     }
 
     /**
@@ -322,6 +329,22 @@ class Patient
     public function setTasks($tasks)
     {
         $this->tasks = $tasks;
+    }
+
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
+     * @param Client $client
+     */
+    public function setClient(Client $client)
+    {
+        $this->client = $client;
     }
 
 

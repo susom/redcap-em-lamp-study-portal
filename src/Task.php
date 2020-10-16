@@ -4,6 +4,7 @@
 
 namespace Stanford\LampStudyPortal;
 
+use \GuzzleHttp\Client;
 /**
  * Class Task
  * @package Stanford\LampStudyPortal
@@ -25,12 +26,18 @@ class Task
     /** @var string $status */
     private $status;
 
+    /** @var Client $client */
+    private $client;
+
     /**
      * Task constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         // Other code to run when object is instantiated
+
+        $this->setClient(new Client());
     }
 
     /**
@@ -113,7 +120,21 @@ class Task
         $this->status = $status;
     }
 
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
 
+    /**
+     * @param Client $client
+     */
+    public function setClient(Client $client)
+    {
+        $this->client = $client;
+    }
 
 
 }

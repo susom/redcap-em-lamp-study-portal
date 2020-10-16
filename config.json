@@ -37,13 +37,37 @@
 	],
 
 	"project-settings": [
-		{
-			"key": "enable-project-debug-logging",
-			"name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
-			"required": false,
-			"type": "checkbox"
-		}
-	],
+        {
+            "key": "authentication-email",
+            "name": "<b>Email which will be used to get Bearer Token</b><br><i></i>",
+            "required": true,
+            "type": "text"
+        },
+        {
+            "key": "authentication-password",
+            "name": "<b>Password which will be used to get Bearer Token</b><br><i></i>",
+            "required": true,
+            "type": "text"
+        },
+        {
+            "key": "current-token",
+            "name": "<b>This field will contain current token till expired.</b><br><i></i>",
+            "required": false,
+            "type": "text"
+        },
+        {
+            "key": "token-expiration-time",
+            "name": "<b>When current token will expire. </b><br><i></i>",
+            "required": false,
+            "type": "text"
+        },
+        {
+            "key": "enable-project-debug-logging",
+            "name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
+            "required": false,
+            "type": "checkbox"
+        }
+    ],
 
 
 	"system-settings": [

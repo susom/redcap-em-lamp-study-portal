@@ -1,35 +1,75 @@
 <?php
 namespace Stanford\LampStudyPortal;
 
+
 require_once "emLoggerTrait.php";
+require_once "src/Client.php";
+require_once "src/Patient.php";
+require_once "src/Task.php";
+require_once "src/Media.php";
+
+
+define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
 
 /**
  * Class LampStudyPortal
  * @package Stanford\LampStudyPortal
- * @param
+ * @property array $patients;
  */
-class LampStudyPortal extends \ExternalModules\AbstractExternalModule {
+class LampStudyPortal extends \ExternalModules\AbstractExternalModule
+{
 
     use emLoggerTrait;
 
-    public function __construct() {
-		parent::__construct();
-		// Other code to run when object is instantiated
-	}
+    /** @var array $patients */
+    private $patients;
 
-	public function redcap_module_system_enable( $version ) {
+    /** @var Client $client */
+    private $client;
 
-	}
+    public function __construct()
+    {
+        try {
+            parent::__construct();
 
+            if (isset($_GET['pid'])) {
+                $this->setClient(new Client($this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password')));
+            }
+            // Other code to run when object is instantiated
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+        }
+    }
 
-	public function redcap_module_project_enable( $version, $project_id ) {
+    /**
+     * @return array
+     */
+    public function getPatients()
+    {
+        return $this->patients;
+    }
 
-	}
+    /**
+     * @param array $patients
+     */
+    public function setPatients($patients)
+    {
+        $this->patients = $patients;
+    }
 
+    /**
+     * @return Client
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
 
-	public function redcap_module_save_configuration( $project_id ) {
-
-	}
-
-
+    /**
+     * @param Client $client
+     */
+    public function setClient(Client $client)
+    {
+        $this->client = $client;
+    }
 }
