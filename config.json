@@ -38,6 +38,12 @@
 
 	"project-settings": [
         {
+            "key": "study-group",
+            "name": "<b>Please add Pattern Health group id </b><br><i></i>",
+            "required": true,
+            "type": "text"
+        },
+        {
             "key": "authentication-email",
             "name": "<b>Email which will be used to get Bearer Token</b><br><i></i>",
             "required": true,
@@ -56,7 +62,7 @@
             "type": "text"
         },
         {
-            "key": "token-expiration-time",
+            "key": "token-expiration",
             "name": "<b>When current token will expire. </b><br><i></i>",
             "required": false,
             "type": "text"

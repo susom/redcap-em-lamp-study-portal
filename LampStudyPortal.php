@@ -2,6 +2,8 @@
 namespace Stanford\LampStudyPortal;
 
 
+use ExternalModules\AbstractExternalModule;
+
 require_once "emLoggerTrait.php";
 require_once "src/Client.php";
 require_once "src/Patient.php";
@@ -33,12 +35,28 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             parent::__construct();
 
             if (isset($_GET['pid'])) {
-                $this->setClient(new Client($this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password')));
+                $this->setClient(new Client($this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
+
+                //work around if token is updated make sure to save it.
+                if ($this->getProjectSetting('current-token') != $this->getClient()->getToken()) {
+                    $this->setProjectSetting('current-token', $this->getClient()->getToken());
+                    $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
+                }
+
+                $this->getAllPatients();
+
             }
             // Other code to run when object is instantiated
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
+    }
+
+    public function getAllPatients()
+    {
+        $patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+
+        $this->setPatients($patients);
     }
 
     /**

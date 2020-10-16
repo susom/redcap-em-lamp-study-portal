@@ -8,6 +8,8 @@ namespace Stanford\LampStudyPortal;
  * @property string $token
  * @property string $email
  * @property string $password;
+ * @property string $expiration;
+ * @property string $group;
  */
 class Client extends \GuzzleHttp\Client
 {
@@ -18,16 +20,30 @@ class Client extends \GuzzleHttp\Client
 
     private $password;
 
-    public function __construct($email, $password, array $config = ['Content-Type' => 'application/json'])
+    private $expiration;
+
+    private $group;
+
+    public function __construct($group, $email, $password, $token = '', $expiration = '', array $config = ['Content-Type' => 'application/json'])
     {
 
         parent::__construct($config);
+
+        $this->setGroup($group);
 
         $this->setEmail($email);
 
         $this->setPassword($password);
 
-        $this->generateBearerToken();
+        // still token not expired then save it to be used.
+        if ($expiration && $token && strtotime($expiration) > time()) {
+            $this->setToken($token);
+            $this->setExpiration($expiration);
+        } elseif ($email && $password) {
+            $this->generateBearerToken();
+        } else {
+            throw new \Exception("no config found");
+        }
 
     }
 
@@ -37,26 +53,44 @@ class Client extends \GuzzleHttp\Client
             'email' => $this->getEmail(),
             'password' => $this->getPassword()
         );
-        $response = $this->request('post', BASE_PATTERN_HEALTH_API_URL . 'auth/login',
+        $result = $this->request('post', BASE_PATTERN_HEALTH_API_URL . 'auth/login',
             ['json' => $body,
-                'debug' => true,
+                #'debug' => true,
                 'headers' => ['Content-Type' => 'application/json']
             ]
         );
-        $code = $response->getStatusCode();
-        if ($code == 200 || $code == 201) {
-            $result = json_decode($response->getBody()->getContents());
-            $this->setToken($result['access_token']);
-        } else {
-            throw new \Exception("cant make request to Authenticate User");
+        $this->setToken($result['access_token']);
+        $this->setExpiration(date('Y-m-d H:i:s', time() + 12 * 3600));
+
+    }
+
+    public function request($method, $uri = '', array $options = [])
+    {
+
+        // make it easy to make call without passing token
+        if (empty($options)) {
+            $options = ['headers' =>
+                [
+                    'Authorization' => "Bearer " . $this->getToken()
+                ]
+            ];
         }
 
+        $response = parent::request($method, $uri, $options);
+
+        $code = $response->getStatusCode();
+
+        if ($code == 200 || $code == 201) {
+            return json_decode($response->getBody()->getContents(), true);
+        } else {
+            throw new \Exception("cant make request!");
+        }
     }
 
     /**
      * @return string
      */
-    public function getToken(): string
+    public function getToken()
     {
         return $this->token;
     }
@@ -64,7 +98,7 @@ class Client extends \GuzzleHttp\Client
     /**
      * @param string $token
      */
-    public function setToken(string $token): void
+    public function setToken($token)
     {
         $this->token = $token;
     }
@@ -72,7 +106,7 @@ class Client extends \GuzzleHttp\Client
     /**
      * @return string
      */
-    public function getEmail(): string
+    public function getEmail()
     {
         return $this->email;
     }
@@ -80,7 +114,7 @@ class Client extends \GuzzleHttp\Client
     /**
      * @param string $email
      */
-    public function setEmail(string $email): void
+    public function setEmail($email)
     {
         $this->email = $email;
     }
@@ -88,7 +122,7 @@ class Client extends \GuzzleHttp\Client
     /**
      * @return string
      */
-    private function getPassword(): string
+    private function getPassword()
     {
         return $this->password;
     }
@@ -96,9 +130,42 @@ class Client extends \GuzzleHttp\Client
     /**
      * @param string $password
      */
-    private function setPassword(string $password): void
+    private function setPassword($password)
     {
         $this->password = $password;
     }
+
+    /**
+     * @return string
+     */
+    public function getExpiration()
+    {
+        return $this->expiration;
+    }
+
+    /**
+     * @param string $expiration
+     */
+    public function setExpiration($expiration)
+    {
+        $this->expiration = $expiration;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGroup()
+    {
+        return $this->group;
+    }
+
+    /**
+     * @param string $group
+     */
+    public function setGroup($group)
+    {
+        $this->group = $group;
+    }
+
 
 }
