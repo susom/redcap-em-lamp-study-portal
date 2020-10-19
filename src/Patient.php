@@ -79,9 +79,9 @@ class Patient
     {
         $tasks = $this->getTasks();
 
-        if ($tasks['totalCounts'] > 0) {
-            foreach ($tasks['results'] as $index => $task) {
-                $tasks['results'][$index]['object'] = new Task($this->getClient());
+        if (!empty($tasks)) {
+            foreach ($tasks as $index => $task) {
+                $tasks[$index]['object'] = new Task($this->getClient(), $task['uuid']);
             }
             // after initializing the tasks objects update the array.
             $this->setTasks($tasks);

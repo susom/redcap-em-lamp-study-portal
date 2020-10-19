@@ -62,7 +62,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
-                $patients['results'][$index]['object'] = new Patient($this->getClient(), $patient['uuid']);
+                $patients['results'][$index]['object'] = new Patient($this->getClient(), $patient['user']['uuid']);
             }
             $this->setPatients($patients);
         }

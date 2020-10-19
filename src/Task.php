@@ -11,8 +11,8 @@ use \GuzzleHttp\Client;
  */
 class Task
 {
-    /** @var string $id */
-    private $id;
+    /** @var string $uuid */
+    private $uuid;
 
     /** @var string $type */
     private $type;
@@ -32,28 +32,28 @@ class Task
     /**
      * Task constructor.
      */
-    public function __construct($client)
+    public function __construct($client, $uuid)
     {
-        parent::__construct();
         // Other code to run when object is instantiated
 
+        $this->setUuid($uuid);
         $this->setClient($client);
     }
 
     /**
      * @return string
      */
-    public function getId()
+    public function getUuid()
     {
-        return $this->id;
+        return $this->uuid;
     }
 
     /**
-     * @param string $id
+     * @param string $uuid
      */
-    public function setId($id)
+    public function setUuid($uuid)
     {
-        $this->id = $id;
+        $this->uuid = $uuid;
     }
 
     /**
