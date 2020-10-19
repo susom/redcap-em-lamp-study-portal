@@ -2,6 +2,9 @@
 
 namespace Stanford\LampStudyPortal;
 
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
+
 /**
  * Class Client
  * @package Stanford\LampStudyPortal
@@ -10,6 +13,7 @@ namespace Stanford\LampStudyPortal;
  * @property string $password;
  * @property string $expiration;
  * @property string $group;
+ * @property \Stanford\LampStudyPortal\LampStudyPortal $em
  */
 class Client extends \GuzzleHttp\Client
 {
@@ -24,10 +28,14 @@ class Client extends \GuzzleHttp\Client
 
     private $group;
 
-    public function __construct($group, $email, $password, $token = '', $expiration = '', array $config = ['Content-Type' => 'application/json'])
+    private $em;
+
+    public function __construct($em, $group, $email, $password, $token = '', $expiration = '', array $config = ['Content-Type' => 'application/json'])
     {
 
         parent::__construct($config);
+
+        $this->setEm($em);
 
         $this->setGroup($group);
 
@@ -61,30 +69,50 @@ class Client extends \GuzzleHttp\Client
         );
         $this->setToken($result['access_token']);
         $this->setExpiration(date('Y-m-d H:i:s', time() + 12 * 3600));
-
+        $this->getEm()->updateTokenInfo();
     }
 
-    public function request($method, $uri = '', array $options = [])
+    public function request($method, $uri = '', array $options = [], $refreshed = false)
     {
+        try {
+            // make it easy to make call without passing token
+            if (empty($options)) {
+                $options = ['headers' =>
+                    [
+                        'Authorization' => "Bearer " . $this->getToken()
+                    ]
+                ];
 
-        // make it easy to make call without passing token
-        if (empty($options)) {
-            $options = ['headers' =>
-                [
-                    'Authorization' => "Bearer " . $this->getToken()
-                ]
-            ];
+            }
+
+            $response = parent::request($method, $uri, $options);
+
+            $code = $response->getStatusCode();
+
+            if ($code == 200 || $code == 201) {
+                return json_decode($response->getBody()->getContents(), true);
+            } else {
+                // for regular request if failed try to generate new token and try again. otherwise throw exception.
+                if (!$refreshed && empty($options)) {
+                    $this->generateBearerToken();
+
+                    return $this->request($method, $uri, $options, true);
+                }
+                throw new \Exception("cant make request!");
+            }
+        } catch (ClientException $e) {
+            // for regular request if failed try to generate new token and try again. otherwise throw exception.
+            if (!$refreshed) {
+                $this->generateBearerToken();
+
+                return $this->request($method, $uri, array(), true);
+            } else {
+                echo $e->getMessage();
+            }
+        } catch (\Exception $e) {
+            echo $e->getMessage();
         }
 
-        $response = parent::request($method, $uri, $options);
-
-        $code = $response->getStatusCode();
-
-        if ($code == 200 || $code == 201) {
-            return json_decode($response->getBody()->getContents(), true);
-        } else {
-            throw new \Exception("cant make request!");
-        }
     }
 
     /**
@@ -165,6 +193,22 @@ class Client extends \GuzzleHttp\Client
     public function setGroup($group)
     {
         $this->group = $group;
+    }
+
+    /**
+     * @return LampStudyPortal
+     */
+    public function getEm()
+    {
+        return $this->em;
+    }
+
+    /**
+     * @param LampStudyPortal $em
+     */
+    public function setEm(LampStudyPortal $em)
+    {
+        $this->em = $em;
     }
 
 

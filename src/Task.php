@@ -32,12 +32,12 @@ class Task
     /**
      * Task constructor.
      */
-    public function __construct()
+    public function __construct($client)
     {
         parent::__construct();
         // Other code to run when object is instantiated
 
-        $this->setClient(new Client());
+        $this->setClient($client);
     }
 
     /**

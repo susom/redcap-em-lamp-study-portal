@@ -35,15 +35,10 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             parent::__construct();
 
             if (isset($_GET['pid'])) {
-                $this->setClient(new Client($this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
+                $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
 
-                //work around if token is updated make sure to save it.
-                if ($this->getProjectSetting('current-token') != $this->getClient()->getToken()) {
-                    $this->setProjectSetting('current-token', $this->getClient()->getToken());
-                    $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
-                }
 
-                $this->getAllPatients();
+                $this->processPatients();
 
             }
             // Other code to run when object is instantiated
@@ -52,27 +47,52 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
-    public function getAllPatients()
+    public function updateTokenInfo()
     {
-        $patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
-
-        $this->setPatients($patients);
+        //work around if token is updated make sure to save it.
+        if ($this->getProjectSetting('current-token') != $this->getClient()->getToken()) {
+            $this->setProjectSetting('current-token', $this->getClient()->getToken());
+            $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
+        }
     }
+
+    private function processPatients()
+    {
+
+        $patients = $this->getPatients();
+        if ($patients['totalCount'] > 0) {
+            foreach ($patients['results'] as $index => $patient) {
+                $patients['results'][$index]['object'] = new Patient($this->getClient(), $patient['uuid']);
+            }
+            $this->setPatients($patients);
+        }
+
+
+    }
+
 
     /**
      * @return array
      */
     public function getPatients()
     {
+        if (!$this->patients) {
+            $this->setPatients();
+        }
         return $this->patients;
     }
 
     /**
      * @param array $patients
      */
-    public function setPatients($patients)
+    public function setPatients($patients = array())
     {
-        $this->patients = $patients;
+        if (empty($patients)) {
+            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+        } else {
+            $this->patients = $patients;
+        }
+
     }
 
     /**

@@ -56,23 +56,37 @@ class Patient
     /** @var string $mobile_number_verified */
     private $mobile_number_verified;
 
-    /** @var \Stanford\LampStudyPortal\Task $tasks */
+    /** @var array $tasks */
     private $tasks;
 
     /** @var Client $client */
     private $client;
 
+
     /**
      * Patient constructor.
      */
-    public function __construct($uuid)
+    public function __construct($client, $uuid)
     {
-        parent::__construct();
-        // Other code to run when object is instantiated
-        $this->$uuid = $uuid;
-        $this->tasks = array();
+        $this->setUuid($uuid);
+        $this->setClient($client);
 
-        $this->setClient(new Client());
+        $this->processTasks();
+
+    }
+
+    private function processTasks()
+    {
+        $tasks = $this->getTasks();
+
+        if ($tasks['totalCounts'] > 0) {
+            foreach ($tasks['results'] as $index => $task) {
+                $tasks['results'][$index]['object'] = new Task($this->getClient());
+            }
+            // after initializing the tasks objects update the array.
+            $this->setTasks($tasks);
+        }
+
     }
 
     /**
@@ -320,15 +334,24 @@ class Patient
      */
     public function getTasks()
     {
+        if (!$this->tasks) {
+            $this->setTasks();
+        }
         return $this->tasks;
     }
 
     /**
      * @param array $tasks
      */
-    public function setTasks($tasks)
+    public function setTasks($tasks = array())
     {
-        $this->tasks = $tasks;
+        // first time just make api call to get the tasks for this patient otherwise update existing ones.
+        if (empty($tasks)) {
+            $this->tasks = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'users/' . $this->getUuid() . '/tasks');;
+        } else {
+            $this->tasks = $tasks;
+        }
+
     }
 
     /**
