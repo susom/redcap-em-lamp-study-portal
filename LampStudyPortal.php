@@ -37,7 +37,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             if (isset($_GET['pid'])) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
 
-
+                $this->getClient()->checkToken();
                 $this->processPatients();
 
             }

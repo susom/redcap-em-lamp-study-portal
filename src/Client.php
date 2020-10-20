@@ -43,16 +43,21 @@ class Client extends \GuzzleHttp\Client
 
         $this->setPassword($password);
 
+
+    }
+
+    public function checkToken()
+    {
+
         // still token not expired then save it to be used.
-        if ($expiration && $token && strtotime($expiration) > time()) {
-            $this->setToken($token);
-            $this->setExpiration($expiration);
-        } elseif ($email && $password) {
+        if ($this->getExpiration() && $this->getToken() && strtotime($this->getExpiration()) > time()) {
+            $this->setToken($this->getToken());
+            $this->setExpiration($this->getExpiration());
+        } elseif ($this->getEmail() && $this->getPassword()) {
             $this->generateBearerToken();
         } else {
             throw new \Exception("no config found");
         }
-
     }
 
     private function generateBearerToken()
