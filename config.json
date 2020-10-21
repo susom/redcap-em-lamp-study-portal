@@ -38,6 +38,23 @@
 
 	"project-settings": [
         {
+            "key": "workflow",
+            "name": "This Project Workflow:",
+            "required": true,
+            "type": "radio",
+            "default": "image_judication",
+            "choices": [
+                {
+                    "value": "image_judication",
+                    "name": "Image Judication"
+                },
+                {
+                    "value": "lazy_import",
+                    "name": "Lazy Patient Import"
+                }
+            ]
+        },
+        {
             "key": "study-group",
             "name": "<b>Pattern Health group id </b><br>(e.g : g-aBcDEFghijklmnoP-QrStU)",
             "required": true,

@@ -2,15 +2,12 @@
 namespace Stanford\LampStudyPortal;
 
 
-use ExternalModules\AbstractExternalModule;
-use mysql_xdevapi\Exception;
-use REDCapExt\Promis\Api\Mapper\Calibration\Property;
-
 require_once "emLoggerTrait.php";
 require_once "src/Client.php";
 require_once "src/Patient.php";
 require_once "src/Task.php";
 require_once "src/Media.php";
+require_once "src/workflow/ImageJudication.php";
 
 
 define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
@@ -31,6 +28,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     /** @var Client $client */
     private $client;
 
+    /** @var ImageJudication $workflow */
+    private $workflow;
+
     public function __construct()
     {
         try {
@@ -41,6 +41,12 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
                 $this->processPatients();
+
+                if ($this->getProjectSetting("workflow") == "image_judication") {
+                    $this->setWorkflow(new ImageJudication($this->getPatients(), $this->getClient()));
+                } else {
+                    //TODO Jordan please define your class here and set it as workflow
+                }
 
             }
             // Other code to run when object is instantiated
@@ -140,4 +146,22 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         $this->client = $client;
     }
+
+    /**
+     * @return ImageJudication
+     */
+    public function getWorkflow()
+    {
+        return $this->workflow;
+    }
+
+    /**
+     * @param ImageJudication $workflow
+     */
+    public function setWorkflow($workflow)
+    {
+        $this->workflow = $workflow;
+    }
+
+
 }
