@@ -3,6 +3,8 @@ namespace Stanford\LampStudyPortal;
 
 
 use ExternalModules\AbstractExternalModule;
+use mysql_xdevapi\Exception;
+use REDCapExt\Promis\Api\Mapper\Calibration\Property;
 
 require_once "emLoggerTrait.php";
 require_once "src/Client.php";
@@ -33,10 +35,10 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         try {
             parent::__construct();
+            global $Proj;
 
             if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
-
                 $this->getClient()->checkToken();
                 $this->processPatients();
 
@@ -58,18 +60,46 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
     private function processPatients()
     {
-
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
-                $patients['results'][$index]['object'] = new Patient($this->getClient(), $patient['user']['uuid']);
+                $patientObj = new Patient($this->getClient(), $patient);
+                $this->createPatientRecord($patientObj, $patientObj->getConstants());
+                break; //for testing only
             }
-            $this->setPatients($patients);
+        } else {
+            $this->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
         }
-
-
+        //update patient object
+        $this->setPatients($patients);
     }
 
+
+    /**
+     * @param Patient $patient patient object
+     * @param array $attributes associative mapping table between pattern keys and redcap keys
+     */
+    public function createPatientRecord(Patient $patient, array $attributes)
+    {
+        if (isset($patient) && !empty($attributes)) {
+            $patient_json = $patient->getPatientJson();
+            $data = array("record_id" => $patient_json['user']['uuid']);
+
+            //Update all patient variables in redcap instrument
+            foreach($attributes as $pattern_key => $redcap_variable_name){
+                if(isset($patient_json['user'][$pattern_key])){
+
+                    $data[$redcap_variable_name] = is_string($patient_json['user'][$pattern_key]) ? $patient_json['user'][$pattern_key] : (string)(int)$patient_json['user'][$pattern_key] ;
+                }
+            }
+
+            $result =  \REDCap::saveData('json', json_encode(array($data)));
+            if (!empty($result['errors'])) $this->emError("Errors saving result: ", '', '', $result);
+
+        } else {
+            $this->emError('No patient currently passed', '', $patient, $attributes);
+        }
+    }
 
     /**
      * @return array
