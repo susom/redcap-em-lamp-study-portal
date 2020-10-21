@@ -40,10 +40,12 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
-                $this->processPatients();
+
+                // I do not think we want this let the workflow pull its patients in case we need to filtering could change
+                //$this->processPatients();
 
                 if ($this->getProjectSetting("workflow") == "image_judication") {
-                    $this->setWorkflow(new ImageJudication($this->getPatients(), $this->getClient()));
+                    $this->setWorkflow(new ImageJudication($this->getClient()));
                 } else {
                     //TODO Jordan please define your class here and set it as workflow
                 }
@@ -63,23 +65,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
         }
     }
-
-    private function processPatients()
-    {
-        $patients = $this->getPatients();
-        if ($patients['totalCount'] > 0) {
-            foreach ($patients['results'] as $index => $patient) {
-                $patientObj = new Patient($this->getClient(), $patient);
-                $this->createPatientRecord($patientObj, $patientObj->getConstants());
-                break; //for testing only
-            }
-        } else {
-            $this->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
-        }
-        //update patient object
-        $this->setPatients($patients);
-    }
-
 
     /**
      * @param Patient $patient patient object

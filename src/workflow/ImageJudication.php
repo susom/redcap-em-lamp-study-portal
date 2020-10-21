@@ -17,15 +17,30 @@ class ImageJudication
     private $patients;
 
     /**
-     * @param $patients
      * @param Client $client
      */
-    public function __construct($patients, $client)
+    public function __construct($client)
     {
 
-        $this->setPatients($patients);
+        $this->setPatients();
         $this->setClient($client);
 
+    }
+
+
+    private function processPatients()
+    {
+        $patients = $this->getPatients();
+        if ($patients['totalCount'] > 0) {
+            foreach ($patients['results'] as $index => $patient) {
+                $patientObj = new Patient($this->getClient(), $patient);
+                break; //for testing only
+            }
+        } else {
+            $this->getClient()->getEm()->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
+        }
+        //update patient object
+        $this->setPatients($patients);
     }
 
     /**
@@ -44,21 +59,28 @@ class ImageJudication
         $this->client = $client;
     }
 
+
     /**
      * @return array
      */
     public function getPatients()
     {
+        if (!$this->patients) {
+            $this->setPatients();
+        }
         return $this->patients;
     }
 
     /**
      * @param array $patients
      */
-    public function setPatients(array $patients)
+    public function setPatients($patients = array())
     {
-        $this->patients = $patients;
+        if (empty($patients)) {
+            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+        } else {
+            $this->patients = $patients;
+        }
+
     }
-
-
 }
