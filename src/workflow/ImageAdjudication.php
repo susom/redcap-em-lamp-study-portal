@@ -8,7 +8,7 @@ namespace Stanford\LampStudyPortal;
  * @package Stanford\LampStudyPortal
  * @property Client $client
  */
-class ImageJudication
+class ImageAdjudication
 {
     /** @var Client $client */
     private $client;
@@ -22,8 +22,9 @@ class ImageJudication
     public function __construct($client)
     {
 
-        $this->setPatients();
         $this->setClient($client);
+        $this->setPatients();
+        $this->processPatients();
 
     }
 
@@ -33,6 +34,9 @@ class ImageJudication
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
+                if ($patient['toDoTasks']) {
+                    $a = 1;
+                }
                 $patientObj = new Patient($this->getClient(), $patient);
                 break; //for testing only
             }

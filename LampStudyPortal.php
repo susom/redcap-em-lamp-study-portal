@@ -7,7 +7,7 @@ require_once "src/Client.php";
 require_once "src/Patient.php";
 require_once "src/Task.php";
 require_once "src/Media.php";
-require_once "src/workflow/ImageJudication.php";
+require_once "src/workflow/ImageAdjudication.php";
 
 
 define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
@@ -28,7 +28,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     /** @var Client $client */
     private $client;
 
-    /** @var ImageJudication $workflow */
+    /** @var ImageAdjudication $workflow */
     private $workflow;
 
     public function __construct()
@@ -43,9 +43,8 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
                 // I do not think we want this let the workflow pull its patients in case we need to filtering could change
                 //$this->processPatients();
-
-                if ($this->getProjectSetting("workflow") == "image_judication") {
-                    $this->setWorkflow(new ImageJudication($this->getClient()));
+                if ($this->getProjectSetting("workflow") == "image_adjudication") {
+                    $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } else {
                     //TODO Jordan please define your class here and set it as workflow
                 }
@@ -133,7 +132,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     }
 
     /**
-     * @return ImageJudication
+     * @return ImageAdjudication
      */
     public function getWorkflow()
     {
@@ -141,7 +140,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     }
 
     /**
-     * @param ImageJudication $workflow
+     * @param ImageAdjudication $workflow
      */
     public function setWorkflow($workflow)
     {

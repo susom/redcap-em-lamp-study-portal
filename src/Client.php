@@ -73,7 +73,7 @@ class Client extends \GuzzleHttp\Client
             ]
         );
         $this->setToken($result['access_token']);
-        $this->setExpiration(date('Y-m-d H:i:s', time() + 12 * 3600));
+        $this->setExpiration(date('Y-m-d H:i:s', time() + 1 * 3600));
         $this->getEm()->updateTokenInfo();
     }
 

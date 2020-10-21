@@ -42,11 +42,11 @@
             "name": "This Project Workflow:",
             "required": true,
             "type": "radio",
-            "default": "image_judication",
+            "default": "image_adjudication",
             "choices": [
                 {
-                    "value": "image_judication",
-                    "name": "Image Judication"
+                    "value": "image_adjudication",
+                    "name": "Image Adjudication"
                 },
                 {
                     "value": "lazy_import",
