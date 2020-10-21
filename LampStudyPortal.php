@@ -8,6 +8,7 @@ require_once "src/Patient.php";
 require_once "src/Task.php";
 require_once "src/Media.php";
 require_once "src/workflow/ImageAdjudication.php";
+require_once "src/workflow/DataImport.php";
 
 
 define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
@@ -35,18 +36,16 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         try {
             parent::__construct();
-            global $Proj;
 
             if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
 
-                // I do not think we want this let the workflow pull its patients in case we need to filtering could change
-                //$this->processPatients();
                 if ($this->getProjectSetting("workflow") == "image_adjudication") {
                     $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } else {
                     //TODO Jordan please define your class here and set it as workflow
+                    $this->setWorkflow(new DataImport($this->getClient()));
                 }
 
             }
@@ -63,56 +62,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $this->setProjectSetting('current-token', $this->getClient()->getToken());
             $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
         }
-    }
-
-    /**
-     * @param Patient $patient patient object
-     * @param array $attributes associative mapping table between pattern keys and redcap keys
-     */
-    public function createPatientRecord(Patient $patient, array $attributes)
-    {
-        if (isset($patient) && !empty($attributes)) {
-            $patient_json = $patient->getPatientJson();
-            $data = array("record_id" => $patient_json['user']['uuid']);
-
-            //Update all patient variables in redcap instrument
-            foreach($attributes as $pattern_key => $redcap_variable_name){
-                if(isset($patient_json['user'][$pattern_key])){
-
-                    $data[$redcap_variable_name] = is_string($patient_json['user'][$pattern_key]) ? $patient_json['user'][$pattern_key] : (string)(int)$patient_json['user'][$pattern_key] ;
-                }
-            }
-
-            $result =  \REDCap::saveData('json', json_encode(array($data)));
-            if (!empty($result['errors'])) $this->emError("Errors saving result: ", '', '', $result);
-
-        } else {
-            $this->emError('No patient currently passed', '', $patient, $attributes);
-        }
-    }
-
-    /**
-     * @return array
-     */
-    public function getPatients()
-    {
-        if (!$this->patients) {
-            $this->setPatients();
-        }
-        return $this->patients;
-    }
-
-    /**
-     * @param array $patients
-     */
-    public function setPatients($patients = array())
-    {
-        if (empty($patients)) {
-            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
-        } else {
-            $this->patients = $patients;
-        }
-
     }
 
     /**
