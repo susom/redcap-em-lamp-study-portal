@@ -39,19 +39,19 @@
 	"project-settings": [
         {
             "key": "study-group",
-            "name": "<b>Please add Pattern Health group id </b><br><i></i>",
+            "name": "<b>Pattern Health group id </b><br>(e.g : g-aBcDEFghijklmnoP-QrStU)",
             "required": true,
             "type": "text"
         },
         {
             "key": "authentication-email",
-            "name": "<b>Email which will be used to get Bearer Token</b><br><i></i>",
+            "name": "<b>Pattern Health Email</b><br>(Credentials used to login to Pattern Health)",
             "required": true,
             "type": "text"
         },
         {
             "key": "authentication-password",
-            "name": "<b>Password which will be used to get Bearer Token</b><br><i></i>",
+            "name": "<b>Pattern Health Password</b><br>(Credentials used to login to Pattern Health)",
             "required": true,
             "type": "text"
         },
