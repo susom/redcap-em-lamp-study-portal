@@ -14,6 +14,8 @@ use GuzzleHttp\Exception\GuzzleException;
  * @property string $expiration;
  * @property string $group;
  * @property \Stanford\LampStudyPortal\LampStudyPortal $em
+ * @property bool $saveToREDCap
+ * @property array $REDCapData
  */
 class Client extends \GuzzleHttp\Client
 {
@@ -29,6 +31,10 @@ class Client extends \GuzzleHttp\Client
     private $group;
 
     private $em;
+
+    private $saveToREDCap = false;
+
+    private $REDCapData;
 
     public function __construct($em, $group, $email, $password, $token = '', $expiration = '', array $config = ['Content-Type' => 'application/json'])
     {
@@ -66,14 +72,14 @@ class Client extends \GuzzleHttp\Client
             'email' => $this->getEmail(),
             'password' => $this->getPassword()
         );
-        $result = $this->request('post', BASE_PATTERN_HEALTH_API_URL . 'auth/login',
+        $result = $this->request('post', FULL_PATTERN_HEALTH_API_URL . 'auth/login',
             ['json' => $body,
                 #'debug' => true,
                 'headers' => ['Content-Type' => 'application/json']
             ]
         );
         $this->setToken($result['access_token']);
-        $this->setExpiration(date('Y-m-d H:i:s', time() + 1 * 3600));
+        $this->setExpiration(date('Y-m-d H:i:s', time() + 30 * 60));
         $this->getEm()->updateTokenInfo();
     }
 
@@ -95,7 +101,11 @@ class Client extends \GuzzleHttp\Client
             $code = $response->getStatusCode();
 
             if ($code == 200 || $code == 201) {
-                return json_decode($response->getBody()->getContents(), true);
+                $content = $response->getBody()->getContents();
+                if (is_array(json_decode($content, true))) {
+                    return json_decode($content, true);;
+                }
+                return $content;
             } else {
                 // for regular request if failed try to generate new token and try again. otherwise throw exception.
                 if (!$refreshed && empty($options)) {
@@ -216,5 +226,36 @@ class Client extends \GuzzleHttp\Client
         $this->em = $em;
     }
 
+    /**
+     * @return bool
+     */
+    public function isSaveToREDCap()
+    {
+        return $this->saveToREDCap;
+    }
+
+    /**
+     * @param bool $saveToREDCap
+     */
+    public function setSaveToREDCap($saveToREDCap)
+    {
+        $this->saveToREDCap = $saveToREDCap;
+    }
+
+    /**
+     * @return array
+     */
+    public function getREDCapData()
+    {
+        return $this->REDCapData;
+    }
+
+    /**
+     * @param array $REDCapData
+     */
+    public function setREDCapData($REDCapData)
+    {
+        $this->REDCapData = $REDCapData;
+    }
 
 }

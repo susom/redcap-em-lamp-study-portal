@@ -5,6 +5,7 @@ namespace Stanford\LampStudyPortal;
 use Sabre\VObject\Cli;
 use Stanford\LampStudyPortal\Task;
 use \GuzzleHttp\Client;
+
 /**
  * Class Patient
  * @package Stanford\LampStudyPortal
@@ -60,10 +61,20 @@ class Patient
     private function processTasks()
     {
         $tasks = $this->getTasks();
-
         if (!empty($tasks)) {
             foreach ($tasks as $index => $task) {
                 $tasks[$index]['object'] = new Task($this->getClient(), $task['uuid']);
+                //TODO do we want to capture other tasks and other Journal Entries?
+                if ($task['type'] == 'recordJournalEntry' && !empty($task['measurements'])) {
+                    if (!empty($task['measurements'])) {
+                        foreach ($task['measurements'] as $mIndex => $measurement) {
+                            if ($measurement['type'] == 'journalEntryPhoto') {
+                                $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
+                            }
+                        }
+                    }
+
+                }
             }
             // after initializing the tasks objects update the array.
             $this->setTasks($tasks);
@@ -128,7 +139,7 @@ class Patient
 
         // first time just make api call to get the tasks for this patient otherwise update existing ones.
         if (empty($tasks)) {
-            $this->tasks = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks');
+            $this->tasks = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks?includeMeasurements=true&excludeBiometricMeasurements=false&inclusiveInactivePlanTasks=true&hideProviderTasks=false&includeSurveyElements=false');
         } else {
             $this->tasks = $tasks;
         }

@@ -10,7 +10,8 @@ require_once "src/Media.php";
 require_once "src/workflow/ImageAdjudication.php";
 
 
-define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
+define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/");
+define("FULL_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
 
 /**
  * Class LampStudyPortal
@@ -52,6 +53,8 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             }
             // Other code to run when object is instantiated
         } catch (\Exception $e) {
+            \REDCap::logEvent("ERROR/EXCEPTION occurred " . $e->getMessage(), '', null, null);
+            $this->emError($e->getMessage());
             echo $e->getMessage();
         }
     }
@@ -108,7 +111,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+            $this->patients = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
         } else {
             $this->patients = $patients;
         }
