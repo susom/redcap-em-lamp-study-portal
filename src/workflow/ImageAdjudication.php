@@ -23,7 +23,7 @@ class ImageAdjudication
     {
         $this->setClient($client);
         $this->setPatients();
-        #$this->processPatients();
+        $this->processPatients();
 
         // this to tell other classes we need to track data.
         $this->getClient()->setSaveToREDCap(true);
@@ -47,7 +47,7 @@ class ImageAdjudication
                             // here we need to save the image.
                             $data['patient_uuid'] = $patient['user']['uuid'];
                             $data['task_uuid'] = $task['uuid'];
-                            $data['activity_uuid'] = $task['uuid'];
+                            $data['activity_uuid'] = $task['activityUuid'];
                             #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
                             $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId();
                             $response = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
