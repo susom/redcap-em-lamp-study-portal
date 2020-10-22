@@ -54,15 +54,15 @@ class Media
         return $mime_type;
     }
 
-    public function uploadImage($record, $field, $event, $api_token, $api_url)
+    public function uploadImage($record, $field, $event, $api_token)
     {
         file_put_contents('/tmp/' . $this->getTitle() . '.png', $this->getBinary());
-        $this->writeFileToApi(array('tmp_name' => '/tmp/' . $this->getTitle() . '.png', 'type' => 'image/png', 'name' => $this->getTitle()), $record, $field, $event, $api_token, $api_url);
+        $this->writeFileToApi(array('tmp_name' => '/tmp/' . $this->getTitle() . '.png', 'type' => 'image/png', 'name' => $this->getTitle()), $record, $field, $event, $api_token);
         #unlink('/var/log/redcap/'.$this->getTitle().'.png');
     }
 
     // Write to the API
-    public function writeFileToApi($file, $record, $field, $event, $api_token, $api_url = 'https://redcap.stanford.edu/api/')
+    public function writeFileToApi($file, $record, $field, $event, $api_token)
     {
         // Prepare upload file
         $curlFile = curl_file_create($file["tmp_name"], $file["type"], $file["name"]);
@@ -76,7 +76,7 @@ class Media
             'file' => $curlFile,
             'returnFormat' => 'json'
         );
-        $ch = curl_init($api_url);
+        $ch = curl_init(APP_PATH_WEBROOT_FULL . 'api/');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);

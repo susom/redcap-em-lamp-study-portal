@@ -23,7 +23,7 @@ class ImageAdjudication
     {
         $this->setClient($client);
         $this->setPatients();
-        $this->processPatients();
+        #$this->processPatients();
 
         // this to tell other classes we need to track data.
         $this->getClient()->setSaveToREDCap(true);
@@ -59,7 +59,7 @@ class ImageAdjudication
                                 }
                             } else {
 
-                                $tasks[$tIndex]['media']['object']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'), 'http://ihabz.stanford.edu/api/');
+                                $tasks[$tIndex]['media']['object']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'));
                                 $this->getClient()->getEm()->emLog("Patient :" . $patient['user']['uuid'] . " was imported successfully");
                             }
                         }
