@@ -8,6 +8,7 @@ require_once "src/Patient.php";
 require_once "src/Task.php";
 require_once "src/Media.php";
 require_once "src/workflow/ImageAdjudication.php";
+require_once "src/workflow/DataImport.php";
 
 
 define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/");
@@ -36,18 +37,16 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         try {
             parent::__construct();
-            global $Proj;
 
             if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
 
-                // I do not think we want this let the workflow pull its patients in case we need to filtering could change
-                //$this->processPatients();
                 if ($this->getProjectSetting("workflow") == "image_adjudication") {
                     $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } else {
                     //TODO Jordan please define your class here and set it as workflow
+                    $this->setWorkflow(new DataImport($this->getClient()));
                 }
 
             }
