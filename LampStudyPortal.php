@@ -34,6 +34,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
     public function __construct()
     {
+        global $Proj;
+
+
         try {
             parent::__construct();
 
@@ -43,14 +46,18 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
                 if ($this->getProjectSetting("workflow") == "image_adjudication") {
                     $this->setWorkflow(new ImageAdjudication($this->getClient()));
-                } else {
-                    //TODO Jordan please define your class here and set it as workflow
-                    $this->setWorkflow(new DataImport($this->getClient()));
-                }
+                } else { //Data import
+                    $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
 
+                    if($RepeatingFormsEvents){ //Necessary for patient saving on numerous tasks
+                        $this->setWorkflow(new DataImport($this->getClient()));
+                    }
+
+                }
             }
             // Other code to run when object is instantiated
         } catch (\Exception $e) {
+            \REDCap::logEvent("ERROR/EXCEPTION occurred", '', '', $e->getMessage());
             echo $e->getMessage();
         }
     }

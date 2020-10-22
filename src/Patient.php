@@ -30,7 +30,7 @@ class Patient
     const verified = 'patient_verified';
     const mobileNumberVerified = 'patient_mobile_verified';
 
-    /** @var arr $patient_json */
+    /** @var array $patient_json */
     private $patient_json;
 
     /** @var array $tasks */
@@ -125,7 +125,14 @@ class Patient
     public function setTasks($tasks = array())
     {
         $uuid = $this->getPatientJson()['user']['uuid'];
-
+        $parameters = array(
+            'includeMeasurements' => true,
+            'excludeBiometricMeasurements' => false,
+            'includeInactivePlanTasks' => true,
+            "hideProviderTasks" => false,
+            "includeSurveyElements" => false
+        );
+//        http_build_query($parameters)
         // first time just make api call to get the tasks for this patient otherwise update existing ones.
         if (empty($tasks)) {
             $this->tasks = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks');
