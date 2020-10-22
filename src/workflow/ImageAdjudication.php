@@ -58,6 +58,8 @@ class ImageAdjudication
                                     throw new \Exception($response['errors']);
                                 }
                             } else {
+
+                                $tasks[$tIndex]['media']['object']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'), 'http://ihabz.stanford.edu/api/');
                                 $this->getClient()->getEm()->emLog("Patient :" . $patient['user']['uuid'] . " was imported successfully");
                             }
                         }
