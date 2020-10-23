@@ -11,7 +11,8 @@ require_once "src/workflow/ImageAdjudication.php";
 require_once "src/workflow/DataImport.php";
 
 
-define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
+define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/");
+define("FULL_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
 
 /**
  * Class LampStudyPortal
@@ -57,7 +58,8 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             }
             // Other code to run when object is instantiated
         } catch (\Exception $e) {
-            \REDCap::logEvent("ERROR/EXCEPTION occurred", '', '', $e->getMessage());
+            \REDCap::logEvent("ERROR/EXCEPTION occurred " . $e->getMessage(), '', null, null);
+            $this->emError($e->getMessage());
             echo $e->getMessage();
         }
     }
@@ -69,6 +71,36 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $this->setProjectSetting('current-token', $this->getClient()->getToken());
             $this->setProjectSetting('token-expiration', $this->getClient()->getExpiration());
         }
+    }
+
+    /**
+     * @param Patient $patient patient object
+     * @param array $attributes associative mapping table between pattern keys and redcap keys
+     */
+
+
+    /**
+     * @return array
+     */
+    public function getPatients()
+    {
+        if (!$this->patients) {
+            $this->setPatients();
+        }
+        return $this->patients;
+    }
+
+    /**
+     * @param array $patients
+     */
+    public function setPatients($patients = array())
+    {
+        if (empty($patients)) {
+            $this->patients = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+        } else {
+            $this->patients = $patients;
+        }
+
     }
 
     /**

@@ -30,10 +30,10 @@ class DataImport
                 $patientObj = new Patient($this->getClient(), $patient);
                 $this->createPatientRecord($patientObj, $patientObj->getConstants());
 
-                foreach($patientObj->getTasks() as $index => $task){
-                    $taskRecord = new Task($this->getClient(), $task);
-                    $this->createTaskRecord($taskRecord, $taskRecord->getConstants(), $patientObj, $index);
-                }
+//                foreach($patientObj->getTasks() as $index => $task){
+//                    $taskRecord = new Task($this->getClient(), $task);
+//                    $this->createTaskRecord($taskRecord, $taskRecord->getConstants(), $patientObj, $index);
+//                }
 //                $this->createTaskRecords($patientObj, $taskObj->getConstants());
                 break; //for testing only
             }
@@ -56,12 +56,11 @@ class DataImport
             $data = array("record_id" => $patient_json['user']['uuid']);
 
             //Update all patient variables in redcap instrument
-//            foreach($attributes as $pattern_key => $redcap_variable_name){
-//                if(isset($patient_json['user'][$pattern_key])){
-//                    $data[$redcap_variable_name] = is_string($patient_json['user'][$pattern_key]) ? $patient_json['user'][$pattern_key] : (string)(int)$patient_json['user'][$pattern_key];
-//                }
-//            }
-//                redcap_repeat_instance // redcap_repeat_instrument
+            foreach($attributes as $pattern_key => $redcap_variable_name){
+                if(isset($patient_json['user'][$pattern_key])){
+                    $data[$redcap_variable_name] = is_string($patient_json['user'][$pattern_key]) ? $patient_json['user'][$pattern_key] : (string)(int)$patient_json['user'][$pattern_key];
+                }
+            }
             $result =  \REDCap::saveData('json', json_encode(array($data)));
             if (!empty($result['errors'])) $this->emError("Errors saving result: ", '', '', $result);
 
