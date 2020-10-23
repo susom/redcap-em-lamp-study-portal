@@ -90,7 +90,17 @@
             "type": "checkbox"
         }
     ],
-
+    "links": {
+        "control-center": [
+        ],
+        "project": [
+            {
+                "name": "Image Adjudication Client",
+                "icon": "gear",
+                "url": "src/workflow/comparison.php"
+            }
+        ]
+    },
 
 	"system-settings": [
 		{
