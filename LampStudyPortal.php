@@ -2,6 +2,9 @@
 namespace Stanford\LampStudyPortal;
 
 
+use PHPUnit\Exception;
+use Twig\Error\Error;
+
 require_once "emLoggerTrait.php";
 require_once "src/Client.php";
 require_once "src/Patient.php";
@@ -70,29 +73,50 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    /**
+     * @return array
+     */
     public function fetchImages()
     {
         global $Proj;
         $api_token = $this->getProjectSetting("api-token");
         $records = json_decode(\REDCap::getData($Proj->project_id,'json'));
+
         if (!empty($api_token)) {
-            $payload = array();
-            foreach($records as $index => $record){
-                if (!(int)$record->patient_complete) {
-                    //construct value return
-                    $pic_info = array(
-                        'photo_binary' => $this->generateDataURI($this->callFileApi($api_token,$record->record_id), 'image/png'),
-                        'task_uuid' => $record->task_uuid,
-                        'confidence' => '100'
-                    );
-                    //set key to task UUID
-                    array_push($payload, $pic_info);
+            try {
+                $payload = array();
+                foreach($records as $index => $record){
+                    if (!(int)$record->patient_complete) {
+                        //construct value return
+                        $image_binary = $this->callFileApi($api_token,$record->record_id);
+                        $pic_info = array(
+                            'photo_binary' => $this->generateDataURI($image_binary),
+                            'task_uuid' => $record->task_uuid,
+                            'confidence' => '100'
+                        );
+                        //set key to task UUID
+                        array_push($payload, $pic_info);
+                    }
                 }
+                return $payload;
+            } catch (\Exception $e) {
+                echo 'Caught exception: ', $e->getMessage(), "\n";
+                $this->emError($e->getMessage());
             }
-            return $payload;
+
+        } else {
+            \REDCap::logEvent("ERROR/EXCEPTION occurred " . "Attempted to fetch image data, no API token found", '', null, null);
+            $this->emError("Attempted to fetch image data, no API toekn found");
         }
     }
 
+    /**
+     * @param $api_token
+     * @param $record_id
+     * @param string $field_name
+     * @return bool|string
+     * @throws \Exception
+     */
     public function callFileApi($api_token, $record_id, $field_name='image_file')
     {
         $data = array(
@@ -116,16 +140,25 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
         $output = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        if ($info['http_code'] != 200) {
+            throw new \Exception("<br>Error fetching image for $record_id" . "<br>Upload Request Info:<pre>" . print_r($info, true) . "</pre>");
+        }
         curl_close($ch);
+
         return $output;
     }
 
+    /**
+     * @param $file_binary
+     * @param string $mime
+     * @return string
+     */
     public function generateDataURI($file_binary, $mime='image/png')
     {
         $base64 = base64_encode($file_binary);
         return ('data:' . $mime . ';base64,' . $base64);
     }
-
 
     /**
      * @return array
