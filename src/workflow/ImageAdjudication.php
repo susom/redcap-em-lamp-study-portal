@@ -45,6 +45,7 @@ class ImageAdjudication
                     foreach ($tasks as $tIndex => $task) {
                         if ($tasks[$tIndex]['media']) {
                             // here we need to save the image.
+                            $data['record_id'] = $patient['user']['uuid'];
                             $data['patient_uuid'] = $patient['user']['uuid'];
                             $data['task_uuid'] = $task['uuid'];
                             $data['activity_uuid'] = $task['activityUuid'];

@@ -1,11 +1,49 @@
 <?php
+require_once APP_PATH_DOCROOT . 'ProjectGeneral/header.php';
 
 $image_payload = $module->fetchImages();
+
 if(isset($image_payload)){
+    ?>
+    <div class = 'row' style="margin: 5px;">
+    <?php
     foreach($image_payload as $index => $image){
-        ?> <img src="<?php echo $image['photo_binary']; ?>" style="max-width:300px;" /> <?php
+        if ($index % 2 == 0 && $index != 0) { //new row entry
+            ?>
+                </div><div class = 'row' style="margin: 5px;">
+                    <div class = 'col-lg-6'>
+                        <div class = 'card text-center' style="background-color: rgb(241,241,241)">
+                            <div class = 'card-content'>
+                                <img src="<?php echo $image['photo_binary'];?>" style="max-width: 400px; max-height: 400px;">
+                            </div>
+                            <div class = 'card-body' task_uuid = <?php echo $image['task_uuid']; ?> user_uuid = <?php echo $image['user_uuid']; ?>>
+                                <button class="btn btn-success agree">Positive</button>
+                                <button class="btn btn-danger disagree">Negative</button>
+                            </div>
+                        </div>
+                    </div>
+            <?php
+        } else { //not a new row
+            ?>
+                <div class = 'col-lg-6'>
+                    <div class = 'card text-center' style="background-color: rgb(241,241,241)">
+                        <div class = 'card-content'>
+                            <img src="<?php echo $image['photo_binary'];?>" style="max-width: 400px; max-height: 400px;">
+                        </div>
+                        <div class = 'card-body' task_uuid = <?php echo $image['task_uuid']; ?> user_uuid = <?php echo $image['user_uuid']; ?>>
+                            <button class="btn btn-success agree">Positive</button>
+                            <button class="btn btn-danger disagree">Negative</button>
+                        </div>
+                    </div>
+                </div>
+            <?php
+        }
     }
 }
 
 ?>
-<!--<img src="--><?php //echo $image_payload[0]['photo_binary']; ?><!--" alt="An elephant" />-->
+
+<script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>
+
+
+

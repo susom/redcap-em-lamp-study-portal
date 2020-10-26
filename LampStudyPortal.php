@@ -92,7 +92,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                         $pic_info = array(
                             'photo_binary' => $this->generateDataURI($image_binary),
                             'task_uuid' => $record->task_uuid,
-                            'confidence' => '100'
+                            'user_uuid' => $record->patient_uuid,
                         );
                         //set key to task UUID
                         array_push($payload, $pic_info);
