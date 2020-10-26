@@ -5,15 +5,15 @@ $image_payload = $module->fetchImages();
 
 if(isset($image_payload)){
     ?>
-    <div class = 'row' style="margin: 5px;">
+    <div class = 'row' style="margin-bottom: 20px;">
     <?php
     foreach($image_payload as $index => $image){
         if ($index % 2 == 0 && $index != 0) { //new row entry
             ?>
-                </div><div class = 'row' style="margin: 5px;">
+                </div><div class = 'row' style="margin-bottom: 20px;">
                     <div class = 'col-lg-6'>
                         <div class = 'card text-center' style="background-color: rgb(241,241,241)">
-                            <div class = 'card-content'>
+                            <div class = 'card-content' style="margin-top:10px;">
                                 <img src="<?php echo $image['photo_binary'];?>" style="max-width: 400px; max-height: 400px;">
                             </div>
                             <div class = 'card-body' task_uuid = <?php echo $image['task_uuid']; ?> user_uuid = <?php echo $image['user_uuid']; ?>>
@@ -27,7 +27,7 @@ if(isset($image_payload)){
             ?>
                 <div class = 'col-lg-6'>
                     <div class = 'card text-center' style="background-color: rgb(241,241,241)">
-                        <div class = 'card-content'>
+                        <div class = 'card-content' style="margin-top:10px;">
                             <img src="<?php echo $image['photo_binary'];?>" style="max-width: 400px; max-height: 400px;">
                         </div>
                         <div class = 'card-body' task_uuid = <?php echo $image['task_uuid']; ?> user_uuid = <?php echo $image['user_uuid']; ?>>
@@ -39,7 +39,14 @@ if(isset($image_payload)){
             <?php
         }
     }
+} else {
+    ?>
+    <div class="alert alert-warning" role="alert" style="margin-right: 20px;">
+        No current images found needing adjudication
+    </div>
+    <?php
 }
+
 
 ?>
 
