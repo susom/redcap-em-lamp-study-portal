@@ -51,6 +51,7 @@ if(isset($image_payload)){
 ?>
 
 <script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>
-
-
+<script>
+    LAMP.data = <?php echo json_encode($image_payload); ?>;
+</script>
 

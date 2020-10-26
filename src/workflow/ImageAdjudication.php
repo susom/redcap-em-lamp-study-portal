@@ -51,6 +51,7 @@ class ImageAdjudication
                             $data['activity_uuid'] = $task['activityUuid'];
                             #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
                             $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId();
+                            $data['full_json'] = json_encode($task);
                             $response = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
                             if (!empty($response['errors'])) {
                                 if (is_array($response['errors'])) {

@@ -10,6 +10,17 @@ LAMP.bindEvents = () => {
 }
 
 LAMP.put = (colRef, user_uuid, task_uuid, type) => {
+    console.log(LAMP.data);
+    const found = LAMP.data.find(val => val['user_uuid'] === user_uuid);
+    if(found){
+        let payload = JSON.parse(found['full_json']);
+        payload['status'] = 'completed';
+        payload['progress'] = '1';
+        // payload['finish_time'] = Date.now()
+        //set measurements,
+
+    }
+
     colRef.remove();
     // $.ajax({
     //     url: '',
@@ -25,5 +36,6 @@ LAMP.put = (colRef, user_uuid, task_uuid, type) => {
 LAMP.createJson = () => {
 
 }
+
 
 LAMP.bindEvents();
