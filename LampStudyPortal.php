@@ -91,15 +91,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     $pic_info = array(
                         'task_uuid' => $record->task_uuid,
                         'user_uuid' => $record->patient_uuid,
+                        'photo_binary' => $this->getDocumentName($doc_id)
 //                        'full_json' => $record->full_json
                     );
-                    $sql = "select * from redcap_edocs_metadata where doc_id = '$doc_id'";
-                    $q = db_query($sql);
-                    if (db_num_rows($q) > 0) {
-                        while ($row = db_fetch_assoc($q)) {
-                            $pic_info['photo_binary'] = $this->generateDataURI(file_get_contents("/var/www/html/edocs/" . $row['stored_name']));
-                        }
-                    }
                     array_push($payload, $pic_info);
                 }
                 return $payload;
@@ -115,6 +109,19 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    /**
+     * @param $doc_id
+     * @return string
+     */
+    public function getDocumentName($doc_id) {
+        $sql = "select * from redcap_edocs_metadata where doc_id = '$doc_id'";
+        $q = db_query($sql);
+        if (db_num_rows($q) == 1) {
+            while ($row = db_fetch_assoc($q)) {
+                return $this->generateDataURI(file_get_contents("/var/www/html/edocs/" . $row['stored_name']));
+            }
+        }
+    }
 
     /**
      * @param $file_binary
