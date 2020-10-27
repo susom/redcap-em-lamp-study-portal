@@ -81,27 +81,29 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         global $Proj;
         $api_token = $this->getProjectSetting("api-token");
-
         if (!empty($api_token)) {
             try {
                 //Pull only non completed images
                 $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
                 $payload = array();
-                foreach($records as $index => $record){
-                    if (!(int)$record->patient_complete) {
-                        //construct value return
-                        $image_binary = $this->callFileApi($api_token,$record->record_id);
-                        $pic_info = array(
-                            'photo_binary' => $this->generateDataURI($image_binary),
-                            'task_uuid' => $record->task_uuid,
-                            'user_uuid' => $record->patient_uuid,
-                            'full_json' => $record->full_json
-                        );
-                        //set key to task UUID
-                        array_push($payload, $pic_info);
+                foreach($records as $index => $record) {
+                    $doc_id = $record->image_file;
+                    $pic_info = array(
+                        'task_uuid' => $record->task_uuid,
+                        'user_uuid' => $record->patient_uuid,
+//                        'full_json' => $record->full_json
+                    );
+                    $sql = "select * from redcap_edocs_metadata where doc_id = '$doc_id'";
+                    $q = db_query($sql);
+                    if (db_num_rows($q) > 0) {
+                        while ($row = db_fetch_assoc($q)) {
+                            $pic_info['photo_binary'] = $this->generateDataURI(file_get_contents("/var/www/html/edocs/" . $row['stored_name']));
+                        }
                     }
+                    array_push($payload, $pic_info);
                 }
                 return $payload;
+
             } catch (\Exception $e) {
                 echo 'Caught exception: ', $e->getMessage(), "\n";
                 $this->emError($e->getMessage());
@@ -113,44 +115,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
-    /**
-     * @param $api_token
-     * @param $record_id
-     * @param string $field_name
-     * @return bool|string
-     * @throws \Exception
-     */
-    public function callFileApi($api_token, $record_id, $field_name='image_file')
-    {
-        $data = array(
-            'token' => $api_token,
-            'content' => 'file',
-            'action' => 'export',
-            'record' => $record_id,
-            'field' => $field_name,
-            'event' => '',
-            'returnFormat' => 'json'
-        );
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://localhost/api/');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_VERBOSE, 0);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
-        $output = curl_exec($ch);
-        $info = curl_getinfo($ch);
-        if ($info['http_code'] != 200) {
-            throw new \Exception("<br>Error fetching image for $record_id" . "<br>Upload Request Info:<pre>" . print_r($info, true) . "</pre>");
-        }
-        curl_close($ch);
-
-        return $output;
-    }
 
     /**
      * @param $file_binary
