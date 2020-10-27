@@ -40,6 +40,9 @@ class Patient
     /** @var Client $client */
     private $client;
 
+    /** @var float $confidence */
+    private $confidence;
+
     /**
      * Patient constructor.
      * @param $client
@@ -66,14 +69,13 @@ class Patient
                 $tasks[$index]['object'] = new Task($this->getClient(), $task['uuid']);
                 //TODO do we want to capture other tasks and other Journal Entries?
                 if ($task['type'] == 'recordJournalEntry' && !empty($task['measurements'])) {
-                    if (!empty($task['measurements'])) {
-                        foreach ($task['measurements'] as $mIndex => $measurement) {
-                            if ($measurement['type'] == 'journalEntryPhoto') {
-                                $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
-                            }
+                    foreach ($task['measurements'] as $mIndex => $measurement) {
+                        if ($measurement['type'] == 'journalEntryPhoto') {
+                            $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
+                        } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
+                            $this->setConfidence($measurement['json'][0]); //Set patient confidence for later upload. Since they are in separate measurements.
                         }
                     }
-
                 }
             }
             // after initializing the tasks objects update the array.
@@ -127,6 +129,22 @@ class Patient
             $this->setTasks();
         }
         return $this->tasks;
+    }
+
+    /**
+     * @return float
+     */
+    public function getConfidence()
+    {
+        return $this->confidence;
+    }
+
+    /**
+     * @param float $confidence
+     */
+    public function setConfidence($confidence)
+    {
+        $this->confidence = $confidence;
     }
 
     /**

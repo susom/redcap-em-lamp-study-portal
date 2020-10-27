@@ -45,9 +45,10 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
+                $run = false;
+                if ($this->getProjectSetting("workflow") == "image_adjudication" && $run ) {
 
-                if ($this->getProjectSetting("workflow") == "image_adjudication") {
-//                    $this->setWorkflow(new ImageAdjudication($this->getClient()));
+                    $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
                     $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
                     //TODO finish data pulling
@@ -80,10 +81,11 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         global $Proj;
         $api_token = $this->getProjectSetting("api-token");
-        $records = json_decode(\REDCap::getData($Proj->project_id,'json'));
 
         if (!empty($api_token)) {
             try {
+                //Pull only non completed images
+                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
                 $payload = array();
                 foreach($records as $index => $record){
                     if (!(int)$record->patient_complete) {
@@ -107,7 +109,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
         } else {
             \REDCap::logEvent("ERROR/EXCEPTION occurred " . "Attempted to fetch image data, no API token found", '', null, null);
-            $this->emError("Attempted to fetch image data, no API toekn found");
+            $this->emError("Attempted to fetch image data, no API token found");
         }
     }
 

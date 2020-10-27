@@ -43,15 +43,18 @@ class ImageAdjudication
                 // now loop over retrieved tasks to see if images exists
                 if ($tasks = $patients[$index]['object']->getTasks()) {
                     foreach ($tasks as $tIndex => $task) {
-                        if ($tasks[$tIndex]['media']) {
-                            // here we need to save the image.
-                            $data['record_id'] = $patient['user']['uuid'];
+                        if ($tasks[$tIndex]['media']) { //There is a photo
+//                            $data['record_id'] = $patient['user']['uuid']; //Change this to task ID ?
                             $data['patient_uuid'] = $patient['user']['uuid'];
                             $data['task_uuid'] = $task['uuid'];
                             $data['activity_uuid'] = $task['activityUuid'];
+                            $data['created'] = $task['created']; //keep track of photo upload time
+                            $data['status'] = $task['status'];
                             #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
                             $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId();
                             $data['full_json'] = json_encode($task);
+                            $data['confidence'] = $patients[$index]['object']->getConfidence();
+
                             $response = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
                             if (!empty($response['errors'])) {
                                 if (is_array($response['errors'])) {

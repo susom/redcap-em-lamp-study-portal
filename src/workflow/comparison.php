@@ -3,7 +3,7 @@ require_once APP_PATH_DOCROOT . 'ProjectGeneral/header.php';
 
 $image_payload = $module->fetchImages();
 
-if(isset($image_payload)){
+if(!empty($image_payload)){
     ?>
     <div class = 'row' style="margin-bottom: 20px;">
     <?php
