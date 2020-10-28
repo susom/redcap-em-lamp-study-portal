@@ -1,6 +1,11 @@
 <?php
 require_once APP_PATH_DOCROOT . 'ProjectGeneral/header.php';
 
+if ($_SERVER['REQUEST_METHOD']=='POST') {
+    $module->updateTask($_POST['user_uuid'], $_POST['task_uuid'], $_POST['type']);
+}
+
+
 $image_payload = $module->fetchImages();
 
 if(!empty($image_payload)){

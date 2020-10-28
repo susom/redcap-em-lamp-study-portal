@@ -80,8 +80,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function fetchImages()
     {
         global $Proj;
-        $api_token = $this->getProjectSetting("api-token");
-        if (!empty($api_token)) {
             try {
                 //Pull only non completed images
                 $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
@@ -102,11 +100,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 echo 'Caught exception: ', $e->getMessage(), "\n";
                 $this->emError($e->getMessage());
             }
-
-        } else {
-            \REDCap::logEvent("ERROR/EXCEPTION occurred " . "Attempted to fetch image data, no API token found", '', null, null);
-            $this->emError("Attempted to fetch image data, no API token found");
-        }
     }
 
     /**
@@ -132,6 +125,57 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         $base64 = base64_encode($file_binary);
         return ('data:' . $mime . ';base64,' . $base64);
+    }
+
+    /**
+     * @param $user_uuid
+     * @param $task_uuid
+     * @param $type
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function updateTask($user_uuid, $task_uuid, $type) {
+        if (isset($user_uuid) && isset($task_uuid) && isset($type)) {
+            global $Proj;
+            $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0];
+
+            if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
+                $update_json = json_decode($record_data->full_json);
+                $completion_time =
+                $update_json->status = 'completed';
+                $update_json->progress = '1';
+                $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
+
+                //Might want to move these in a config function
+                $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
+                $this->getClient()->checkToken();
+
+                $options = [
+                    'headers' => [
+                        'Authorization' => "Bearer " . $this->getClient()->getToken(),
+                        'Content-Type' => 'application/json'
+                    ],
+                    'body' => json_encode($update_json)
+                ];
+
+                $response = $this->getClient()->request('put', FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid, $options);
+
+                if (isset($response)) {
+                    $data['task_uuid'] = $task_uuid;
+                    $data['status'] = 'completed';
+                    $data['adjudication_date'] = $update_json->finishTime;
+                    $save = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
+
+                    http_response_code(200);//return 200 on success
+                } else {
+                    http_response_code(400); //return bad request
+                }
+            } else {
+                http_response_code(200);//send 200 to remove picture from screen
+            }
+
+        } else {
+            $this->emError('Failed to update task, empty parameters recieved from client');
+        }
     }
 
     /**

@@ -88,12 +88,9 @@ class Client extends \GuzzleHttp\Client
         try {
             // make it easy to make call without passing token
             if (empty($options)) {
-                $options = ['headers' =>
-                    [
-                        'Authorization' => "Bearer " . $this->getToken()
-                    ]
+                $options = [
+                    'headers' => ['Authorization' => "Bearer " . $this->getToken()]
                 ];
-
             }
 
             $response = parent::request($method, $uri, $options);
@@ -120,7 +117,7 @@ class Client extends \GuzzleHttp\Client
             if (!$refreshed) {
                 $this->generateBearerToken();
 
-                return $this->request($method, $uri, array(), true);
+                return $this->request($method, $uri, $options, true);
             } else {
                 echo $e->getMessage();
             }
