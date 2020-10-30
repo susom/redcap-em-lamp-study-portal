@@ -32,28 +32,33 @@ class ImageAdjudication
 
     private function processPatients()
     {
+        // Fetch all patients sorted by provider task count
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
-            foreach ($patients['results'] as $index => $patient) {
+            foreach ($patients['results'] as $index => $patient) { //iterate in order, break when no toDoProviderTasks
 //                if ($patient['toDoProviderTaskCount'] == 0) {
 //                    break;
 //                }
-                $patients[$index]['object'] = new Patient($this->getClient(), $patient);
-
-                // now loop over retrieved tasks to see if images exists
-                if ($tasks = $patients[$index]['object']->getTasks()) {
-                    foreach ($tasks as $tIndex => $task) {
-                        if ($tasks[$tIndex]['media']) { //There is a photo
-//                            $data['record_id'] = $patient['user']['uuid']; //Change this to task ID ?
+                if($patient['user']['uuid'] == 'u-S5kGbk5lTYWNpKunztGe0g') //for testing, this user has a picture
+                    echo 'yes';
+                $patients[$index]['object'] = new Patient($this->getClient(), $patient); //Create new patient object
+                $journal_entry_photos = $patients[$index]['object']->getJournalEntryPhotos();
+                if (!empty($journal_entry_photos)) { //Users has pictures to upload
+                    //Check here to see if record already exists in our db.
+                    foreach($journal_entry_photos as $index => $photo) {
+                        $check = \REDCap::getData('json',$photo['uuid']);
+                        if (!empty($check)) { //Not in our database, save record
+                            //TODO HOW TO CHECK IF EMPTY ?
+                            $data['task_uuid'] = $photo['uuid']; //Change this to task ID ?
                             $data['patient_uuid'] = $patient['user']['uuid'];
-                            $data['task_uuid'] = $task['uuid'];
-                            $data['activity_uuid'] = $task['activityUuid'];
-                            $data['created'] = $task['created']; //keep track of photo upload time
-                            $data['status'] = $task['status'];
+
+                            $data['activity_uuid'] = $photo['activityUuid'];
+                            $data['created'] = $photo['created']; //keep track of photo upload time
+                            $data['status'] = $photo['status'];
                             #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
                             $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId();
-                            $data['full_json'] = json_encode($task);
-                            $data['confidence'] = $patients[$index]['object']->getConfidence();
+                            $data['full_json'] = json_encode($photo);
+//                            $data['confidence'] = $patients[$index]['object']->getConfidence();
 
                             $response = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
                             if (!empty($response['errors'])) {
@@ -63,14 +68,46 @@ class ImageAdjudication
                                     throw new \Exception($response['errors']);
                                 }
                             } else {
-
-                                $tasks[$tIndex]['media']['object']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'));
+                                $photo['media']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'));
                                 $this->getClient()->getEm()->emLog("Patient :" . $patient['user']['uuid'] . " was imported successfully");
                             }
+
                         }
                     }
+
                 }
-                $x = $patients['index']['object'];
+
+                // now loop over retrieved tasks to see if images exists
+//                if ($tasks = $patients[$index]['object']->getTasks()) {
+//                    foreach ($tasks as $tIndex => $task) {
+//                        if ($tasks[$tIndex]['media']) { //There is a photo
+////                            $data['record_id'] = $patient['user']['uuid']; //Change this to task ID ?
+//                            $data['patient_uuid'] = $patient['user']['uuid'];
+//                            $data['task_uuid'] = $task['uuid'];
+//                            $data['activity_uuid'] = $task['activityUuid'];
+//                            $data['created'] = $task['created']; //keep track of photo upload time
+//                            $data['status'] = $task['status'];
+//                            #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
+//                            $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId();
+//                            $data['full_json'] = json_encode($task);
+//                            $data['confidence'] = $patients[$index]['object']->getConfidence();
+//
+//                            $response = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
+//                            if (!empty($response['errors'])) {
+//                                if (is_array($response['errors'])) {
+//                                    throw new \Exception(implode(",", $response['errors']));
+//                                } else {
+//                                    throw new \Exception($response['errors']);
+//                                }
+//                            } else {
+//
+//                                $tasks[$tIndex]['media']['object']->uploadImage(end($response['ids']), 'image_file', $this->getClient()->getEm()->getFirstEventId(), $this->getClient()->getEm()->getProjectSetting('api-token'));
+//                                $this->getClient()->getEm()->emLog("Patient :" . $patient['user']['uuid'] . " was imported successfully");
+//                            }
+//                        }
+//                    }
+//                }
+//                $x = $patients['index']['object'];
             }
         } else {
             $this->getClient()->getEm()->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());

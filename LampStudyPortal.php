@@ -145,7 +145,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 $update_json->progress = '1';
                 $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
 
-                //Might want to move these in a config function
+                //Might +want to move these in a config function
                 $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
                 $this->getClient()->checkToken();
 

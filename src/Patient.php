@@ -43,6 +43,15 @@ class Patient
     /** @var float $confidence */
     private $confidence;
 
+    /** @var array $provider_tasks */
+    private $provider_tasks;
+
+    /** @var array $journal_entry_photos */
+    private $journal_entry_photos;
+
+    /** @var array */
+    private $media;
+
     /**
      * Patient constructor.
      * @param $client
@@ -53,6 +62,7 @@ class Patient
         $this->setClient($client);
         $this->setPatientJson($patient_json);
         $this->processTasks();
+        $this->fetchMediaInformation();
     }
 
     public function getConstants()
@@ -61,28 +71,141 @@ class Patient
         return $refl->getConstants();
     }
 
+
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * Function that fetches provider and journal tasks
+     */
     private function processTasks()
     {
-        $tasks = $this->getTasks();
+        $tasks = $this->getTasks(); //Pull all user tasks
+        $provider = array();
+        $journal = array();
+
         if (!empty($tasks)) {
-            foreach ($tasks as $index => $task) {
+            foreach ($tasks as $index => $task) { //We only want to iterate through each task array once:: save all that apply
+                //Create new task object for mapping
                 $tasks[$index]['object'] = new Task($this->getClient(), $task['uuid']);
-                //TODO do we want to capture other tasks and other Journal Entries?
-                if ($task['type'] == 'recordJournalEntry' && !empty($task['measurements'])) {
-                    foreach ($task['measurements'] as $mIndex => $measurement) {
+
+                switch ($task['description']) { //We only care about types of recordJournalEntry and Provider
+                    case "Provider - Review Test 1 Results": //save them in specific order relative to survey 0-2
+                        $provider[0] = $task;
+                        break;
+                    case "Provider - Review Test 2 Results":
+                        $provider[1] = $task;
+                        break;
+                    case "Provider - Review Test 3 Results":
+                        $provider[2] = $task;
+                        break;
+                    case "Record Test 1 Results":
+                        $journal[0] = $task;
+                        break;
+                    case "Record Test 2 Results":
+                        $journal[1] = $task;
+                        break;
+                    case "Record Test 3 Results":
+                        $journal[2] = $task;
+                        break;
+                }
+            }
+
+            $this->setProviderTasks($provider);
+            $this->setJournalEntryPhotos($journal);
+            // after initializing the tasks objects update the array.
+            $this->setTasks($tasks);
+        }
+
+    }
+
+    /**
+     * Function that will set the internal media array to the # of media objects able to be uploaded
+     */
+    public function fetchMediaInformation()
+    {
+        $media = array();
+        $provider_tasks = $this->getProviderTasks();
+        if (!empty($provider_tasks)) { //Skip all downloads if no provider task, no adjudication needed
+            $journal_entry_photos = $this->getJournalEntryPhotos();
+            foreach($provider_tasks as $ind => $task) { //Iterate through provider tasks (max 3)
+//                if($task['status'] == 'inProgress') { // commented out for testing
+                if($task['status'] == 'failed') { // only want to save images if status is pending
+                    foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding journalentryPhoto, we have the match via $ind
                         if ($measurement['type'] == 'journalEntryPhoto') {
-                            $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
+                            array_push($media, new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']));
+                            $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
+//                            $save = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
                         } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
                             $this->setConfidence($measurement['json'][0]); //Set patient confidence for later upload. Since they are in separate measurements.
                         }
                     }
                 }
             }
-            // after initializing the tasks objects update the array.
-            $this->setTasks($tasks);
+            //push updates to journal photos + media
+//            $this->setMedia($media);
+            $this->setJournalEntryPhotos($journal_entry_photos);
         }
+        //                if ($task['type'] == 'recordJournalEntry' && !empty($task['measurements'])) {
+//                    foreach ($task['measurements'] as $mIndex => $measurement) {
+//                        if ($measurement['type'] == 'journalEntryPhoto') {
+//                            $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
+//                        } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
+//                            $this->setConfidence($measurement['json'][0]); //Set patient confidence for later upload. Since they are in separate measurements.
+//                        }
+//                    }
+//                }
 
     }
+
+    /**
+     * @return array
+     */
+    public function getMedia()
+    {
+        return $this->media;
+    }
+
+    /**
+     * @param array $media
+     */
+    public function setMedia($media)
+    {
+        $this->media = $media;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getJournalEntryPhotos()
+    {
+        return $this->journal_entry_photos;
+    }
+
+    /**
+     * @param array $journal_entry_photos
+     */
+    public function setJournalEntryPhotos($journal_entry_photos)
+    {
+        $this->journal_entry_photos = $journal_entry_photos;
+    }
+
+
+    /**
+     * @param $tasks
+     */
+    public function setProviderTasks($tasks)
+    {
+        $this->provider_tasks = $tasks;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProviderTasks()
+    {
+        return $this->provider_tasks;
+    }
+
 
     public function getAttributes()
     {
@@ -153,17 +276,9 @@ class Patient
      */
     public function setTasks($tasks = array())
     {
-        $uuid = $this->getPatientJson()['user']['uuid'];
-        $parameters = array(
-            'includeMeasurements' => true,
-            'excludeBiometricMeasurements' => false,
-            'includeInactivePlanTasks' => true,
-            "hideProviderTasks" => false,
-            "includeSurveyElements" => false
-        );
-//        http_build_query($parameters)
         // first time just make api call to get the tasks for this patient otherwise update existing ones.
         if (empty($tasks)) {
+            $uuid = $this->getPatientJson()['user']['uuid'];
             $this->tasks = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks?includeMeasurements=true&excludeBiometricMeasurements=false&inclusiveInactivePlanTasks=true&hideProviderTasks=false&includeSurveyElements=false');
         } else {
             $this->tasks = $tasks;
