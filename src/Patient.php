@@ -40,9 +40,6 @@ class Patient
     /** @var Client $client */
     private $client;
 
-    /** @var float $confidence */
-    private $confidence;
-
     /** @var array $provider_tasks */
     private $provider_tasks;
 
@@ -74,7 +71,7 @@ class Patient
 
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * Function that fetches provider and journal tasks
+     * Function that fetches provider and journal tasks, run once for each Patient
      */
     private function processTasks()
     {
@@ -97,7 +94,7 @@ class Patient
                     case "Provider - Review Test 3 Results":
                         $provider[2] = $task;
                         break;
-                    case "Record Test 1 Results":
+                    case "Record Test 1 Results": //Keep track of tasks that have a JournalEntryPhoto
                         $journal[0] = $task;
                         break;
                     case "Record Test 2 Results":
@@ -109,8 +106,8 @@ class Patient
                 }
             }
 
-            $this->setProviderTasks($provider);
-            $this->setJournalEntryPhotos($journal);
+            $this->setProviderTasks($provider); //Set the tasks that are providers
+            $this->setJournalEntryPhotos($journal); //Set the tasks that have a journal Entry photo
             // after initializing the tasks objects update the array.
             $this->setTasks($tasks);
         }
@@ -129,13 +126,12 @@ class Patient
             foreach($provider_tasks as $ind => $task) { //Iterate through provider tasks (max 3)
 //                if($task['status'] == 'inProgress') { // commented out for testing
                 if($task['status'] == 'failed') { // only want to save images if status is pending
-                    foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding journalentryPhoto, we have the match via $ind
+                    foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding task containing a photo, we have the match via $ind
                         if ($measurement['type'] == 'journalEntryPhoto') {
-                            array_push($media, new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']));
+//                            array_push($media, new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']));
                             $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
-//                            $save = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
                         } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
-                            $this->setConfidence($measurement['json'][0]); //Set patient confidence for later upload. Since they are in separate measurements.
+                            $journal_entry_photos[$ind]['confidence'] = $measurement['json'][0];
                         }
                     }
                 }
@@ -144,16 +140,6 @@ class Patient
 //            $this->setMedia($media);
             $this->setJournalEntryPhotos($journal_entry_photos);
         }
-        //                if ($task['type'] == 'recordJournalEntry' && !empty($task['measurements'])) {
-//                    foreach ($task['measurements'] as $mIndex => $measurement) {
-//                        if ($measurement['type'] == 'journalEntryPhoto') {
-//                            $tasks[$index]['media']['object'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']);
-//                        } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
-//                            $this->setConfidence($measurement['json'][0]); //Set patient confidence for later upload. Since they are in separate measurements.
-//                        }
-//                    }
-//                }
-
     }
 
     /**
@@ -183,6 +169,7 @@ class Patient
 
     /**
      * @param array $journal_entry_photos
+     * Tasks which have a Journal Entry photo
      */
     public function setJournalEntryPhotos($journal_entry_photos)
     {
@@ -254,21 +241,6 @@ class Patient
         return $this->tasks;
     }
 
-    /**
-     * @return float
-     */
-    public function getConfidence()
-    {
-        return $this->confidence;
-    }
-
-    /**
-     * @param float $confidence
-     */
-    public function setConfidence($confidence)
-    {
-        $this->confidence = $confidence;
-    }
 
     /**
      * @param array $tasks

@@ -42,12 +42,24 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         try {
             parent::__construct();
 
-            if (isset($_GET['pid']) && $this->getProjectSetting('study-group') && $this->getProjectSetting('authentication-email') && $this->getProjectSetting('authentication-password')) {
-                $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
+            if (isset($_GET['pid'])
+                && $this->getProjectSetting('study-group')
+                && $this->getProjectSetting('authentication-email')
+                && $this->getProjectSetting('authentication-password'))
+            {
+                $this->setClient(
+                    new Client(
+                        $this,
+                        $this->getProjectSetting('study-group'),
+                        $this->getProjectSetting('authentication-email'),
+                        $this->getProjectSetting('authentication-password'),
+                        $this->getProjectSetting('current-token'),
+                        $this->getProjectSetting('token-expiration')
+                    ));
+
                 $this->getClient()->checkToken();
                 $run = false;
                 if ($this->getProjectSetting("workflow") == "image_adjudication" && $run ) {
-
                     $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
                     $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
@@ -140,13 +152,20 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
             if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
                 $update_json = json_decode($record_data->full_json);
-                $completion_time =
+//                $completion_time =
                 $update_json->status = 'completed';
                 $update_json->progress = '1';
                 $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
 
                 //Might +want to move these in a config function
-                $this->setClient(new Client($this, $this->getProjectSetting('study-group'), $this->getProjectSetting('authentication-email'), $this->getProjectSetting('authentication-password'), $this->getProjectSetting('current-token'), $this->getProjectSetting('token-expiration')));
+                $this->setClient(
+                    new Client($this,
+                        $this->getProjectSetting('study-group'),
+                        $this->getProjectSetting('authentication-email'),
+                        $this->getProjectSetting('authentication-password'),
+                        $this->getProjectSetting('current-token'),
+                        $this->getProjectSetting('token-expiration')
+                    ));
                 $this->getClient()->checkToken();
 
                 $options = [
@@ -195,7 +214,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
+            $this->patients = $this->getClient()->request(
+                'get',
+                FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
         } else {
             $this->patients = $patients;
         }

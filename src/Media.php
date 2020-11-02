@@ -57,7 +57,13 @@ class Media
     public function uploadImage($record, $field, $event, $api_token)
     {
         file_put_contents('/tmp/' . $this->getTitle() . '.png', $this->getBinary());
-        $this->writeFileToApi(array('tmp_name' => '/tmp/' . $this->getTitle() . '.png', 'type' => 'image/png', 'name' => $this->getTitle()), $record, $field, $event, $api_token);
+        $this->writeFileToApi(
+            array(
+                'tmp_name' => '/tmp/' . $this->getTitle() . '.png',
+                'type' => 'image/png',
+                'name' => $this->getTitle()
+            ),
+            $record, $field, $event, $api_token);
         #unlink('/var/log/redcap/'.$this->getTitle().'.png');
     }
 
@@ -89,7 +95,12 @@ class Media
         $info = curl_getinfo($ch);
         curl_close($ch);
         if ($info['http_code'] != 200) {
-            throw new \Exception("<br>Error uploading $field to $record" . "<br>Upload Request Info:<pre>" . print_r($info, true) . "</pre>" . "<br>Upload Request:<pre>" . print_r($result, true) . "</pre>");
+            throw new \Exception(
+                "<br>Error uploading $field to $record" .
+                "<br>Upload Request Info:<pre>" .
+                print_r($info, true) .
+                "</pre>" . "<br>Upload Request:<pre>" .
+                print_r($result, true) . "</pre>");
         }
         return true;
     }
