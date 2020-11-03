@@ -164,7 +164,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function updateTask($user_uuid, $task_uuid, $type) {
         if (isset($user_uuid) && isset($task_uuid) && isset($type)) {
             global $Proj;
-            $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0];
+            $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
             if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
                 $update_json = json_decode($record_data->full_json);
@@ -172,7 +172,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 $update_json->status = 'completed';
                 $update_json->progress = '1';
                 $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
-
+                //TODO need to update measurements array,
                 //Might +want to move these in a config function
                 $this->setClient(
                     new Client($this,
@@ -194,11 +194,17 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
                 $response = $this->getClient()->request('put', FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid, $options);
 
-                if (isset($response)) {
+                if (isset($response)) { //update record upon correct response from pattern
                     $data['task_uuid'] = $task_uuid;
                     $data['status'] = 'completed';
                     $data['adjudication_date'] = $update_json->finishTime;
-                    $save = \REDCap::saveData($this->getClient()->getEm()->getProjectId(), 'json', json_encode(array($data)));
+                    $save = \REDCap::saveData(
+                        $this->getClient()->getEm()->getProjectId(),
+                        'json',
+                        json_encode(array($data))
+                    );
+
+                    //Error checking here
 
                     http_response_code(200);//return 200 on success
                 } else {
