@@ -2,6 +2,7 @@
 namespace Stanford\LampStudyPortal;
 
 
+use ExternalModules\Framework;
 use PHPUnit\Exception;
 use Twig\Error\Error;
 
@@ -36,12 +37,16 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     /** @var ImageAdjudication $workflow */
     private $workflow;
 
+//    /** @param \ExternalModules\FrameworkVersion3\Framework framework */
+
     public function __construct()
     {
-        global $Proj;
-        try {
-            parent::__construct();
+        parent::__construct();
+    }
 
+    public function initialize()
+    {
+        try {
             if (isset($_GET['pid'])
                 && $this->getProjectSetting('study-group')
                 && $this->getProjectSetting('authentication-email')
@@ -58,22 +63,33 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     ));
 
                 $this->getClient()->checkToken();
-                $run = false;
+                $run = true;
                 if ($this->getProjectSetting("workflow") == "image_adjudication" && $run ) {
                     $this->setWorkflow(new ImageAdjudication($this->getClient()));
                 } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
-                    $RepeatingFormsEvents = $Proj->hasRepeatingFormsEvents();
                     //TODO finish data pulling
-//                    if($RepeatingFormsEvents){ //Necessary for patient saving on numerous tasks
-//                        $this->setWorkflow(new DataImport($this->getClient()));
-//                    }
+    //                    if($RepeatingFormsEvents){ //Necessary for patient saving on numerous tasks
+    //                        $this->setWorkflow(new DataImport($this->getClient()));
+    //                    }
                 }
             }
-            // Other code to run when object is instantiated
+        // Other code to run when object is instantiated
         } catch (\Exception $e) {
             \REDCap::logEvent("ERROR/EXCEPTION occurred " . $e->getMessage(), '', null, null);
             $this->emError($e->getMessage());
             echo $e->getMessage();
+        }
+    }
+
+    public function cronImageScanner($cron)
+    {
+        $projects = $this->framework->getProjectsWithModuleEnabled();
+        $url = $this->getUrl('src/workflow/cronImageScanner.php', true); //has to be page
+        foreach($projects as $index => $project_id){
+            $thisUrl = $url . "&pid=$project_id"; //project specific
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+            $this->emLog($response->getBody());
         }
     }
 
@@ -94,7 +110,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         global $Proj;
             try {
                 //Pull only non completed images
-                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
+                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] = "completed"'));
                 $payload = array();
                 foreach($records as $index => $record) {
                     $doc_id = $record->image_file;

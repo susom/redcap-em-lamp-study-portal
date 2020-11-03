@@ -119,25 +119,24 @@ class Patient
      */
     public function fetchMediaInformation()
     {
-        $media = array();
         $provider_tasks = $this->getProviderTasks();
         if (!empty($provider_tasks)) { //Skip all downloads if no provider task, no adjudication needed
             $journal_entry_photos = $this->getJournalEntryPhotos();
             foreach($provider_tasks as $ind => $task) { //Iterate through provider tasks (max 3)
 //                if($task['status'] == 'inProgress') { // commented out for testing
-                if($task['status'] == 'failed') { // only want to save images if status is pending
+//                if($task['status'] == 'failed') { // only want to save images if status is pending
                     foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding task containing a photo, we have the match via $ind
                         if ($measurement['type'] == 'journalEntryPhoto') {
-//                            array_push($media, new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']));
                             $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
                         } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
                             $journal_entry_photos[$ind]['confidence'] = $measurement['json'][0];
+                        } elseif($measurement['surveyQuestionId'] == 'results') {
+                            $journal_entry_photos[$ind]['results'] = $measurement['json'][0];
                         }
                     }
-                }
+//                }
             }
-            //push updates to journal photos + media
-//            $this->setMedia($media);
+            //push updates to journal photos
             $this->setJournalEntryPhotos($journal_entry_photos);
         }
     }

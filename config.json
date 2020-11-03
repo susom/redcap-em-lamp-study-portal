@@ -25,9 +25,13 @@
         }
     ],
 
+    "framework-version": 5,
 
 	"enable-every-page-hooks-on-system-pages": false,
 
+    "no-auth-pages": [
+        "src/workflow/cronImageScanner"
+    ],
 
 	"project-settings": [
         {
@@ -111,6 +115,15 @@
 		}
 	],
 
+    "crons": [
+        {
+            "cron_name": "lamp_image_scanner",
+            "cron_description": ",<b>This cron will hit pattern's API and pull all valid images into redcap</b> ",
+            "method": "cronImageScanner",
+            "cron_frequency": "360",
+            "cron_max_run_time": "300"
+        }
+    ],
 	"compatibility": {
 		"php-version-min": "",
 		"php-version-max": "",
