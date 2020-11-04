@@ -192,7 +192,11 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     'body' => json_encode($update_json)
                 ];
 
-                $response = $this->getClient()->request('put', FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid, $options);
+                $response = $this->getClient()->request(
+                    'put',
+                    FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid,
+                    $options
+                );
 
                 if (isset($response)) { //update record upon correct response from pattern
                     $data['task_uuid'] = $task_uuid;
@@ -211,6 +215,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     http_response_code(400); //return bad request
                 }
             } else {
+                $this->emLog("Record $task_uuid has already been updated, skipping");
                 http_response_code(200);//send 200 to remove picture from screen
             }
 
