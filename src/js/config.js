@@ -15,18 +15,21 @@ LAMP.put = (colRef, user_uuid, taskUUID, type) => {
         'task_uuid': taskUUID,
         'type': type
     };
+
     $.ajax({
         data: obj,
         type: 'POST'
-    }).done(function (res) {
-        colRef.remove(); //remove column reference
-    }).fail(function(err){
-        console.log(err); //provide notification
     })
+        .done((res) => colRef.remove()) //remove column reference
+        .fail((err) => console.log(err)) //provide notification
+
+    LAMP.decrementCounter();
 }
 
-LAMP.createJson = () => {
 
+LAMP.decrementCounter = () => {
+    let count = $("#adjudicationCount").text();
+    count ? $("#adjudicationCount").text(count-=1) : ''
 }
 
 
