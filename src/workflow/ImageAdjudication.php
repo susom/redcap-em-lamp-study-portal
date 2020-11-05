@@ -77,7 +77,7 @@ class ImageAdjudication
                             $data['status'] = $photo['status'];
                             #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
 //                            $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId(); //not necessary ? no event name needed
-                            $data['full_json'] = json_encode($photo);
+                            $data['full_json'] = json_encode($provider_tasks);
                             $data['confidence'] = $photo['confidence'];
                             $data['results'] = $photo['results']; //result yes/no
                             $data['provider_task_uuid'] = $provider_tasks[$index]['uuid'];
@@ -126,59 +126,69 @@ class ImageAdjudication
      */
     public function updateTask($user_uuid, $task_uuid, $results, $notes = '')
     {
-        if (isset($user_uuid) && isset($task_uuid) && isset($results)) {
+        try {
+            if (isset($user_uuid) && isset($task_uuid) && isset($results)) {
 
 
-            global $Proj;
-            $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
+                global $Proj;
+                $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
-            $this->setProviderSurvey($record_data->provider_survey_uuid);
-            if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
-                $update_json = $this->prepareProviderTask($record_data, array('results' => $results, $notes));
+                $this->setProviderSurvey($record_data->provider_survey_uuid);
+                //if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
+                if (empty($record_data->adjudication_date)) { //If the record hasn't already been adjudicated
+                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'notes' => $notes));
 
-                $options = [
-                    'headers' => [
-                        'Authorization' => "Bearer " . $this->getClient()->getToken(),
-                        'Content-Type' => 'application/json'
-                    ],
-                    'body' => json_encode($update_json)
-                ];
+                    $options = [
+                        'headers' => [
+                            'Authorization' => "Bearer " . $this->getClient()->getToken(),
+                            'Content-Type' => 'application/json'
+                        ],
+                        'body' => json_encode($update_json)
+                    ];
 
-                $response = $this->getClient()->request(
-                    'put',
-                    FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid,
-                    $options
-                );
-                $code = $response->getStatusCode();
-                if ($code == 200 || $code == 201) { //update record upon correct response from pattern
-                    $data['task_uuid'] = $task_uuid;
-                    $data['status'] = 'completed';
-                    $data['adjudication_date'] = $update_json->finishTime;
-                    $save = \REDCap::saveData(
-                        $this->getClient()->getEm()->getProjectId(),
-                        'json',
-                        json_encode(array($data))
+                    $response = $this->getClient()->request(
+                        'put',
+                        FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid,
+                        $options
                     );
+                    #$code = $response->getStatusCode();
+                    if ($response) { //update record upon correct response from pattern
+                        $data['task_uuid'] = $task_uuid;
+                        $data['status'] = 'completed';
+                        $data['coordinator_response'] = $results;
+                        $data['coordinator_user_id'] = USERID;
+                        $data['notes'] = $notes;
+                        $data['adjudication_date'] = $update_json->finishTime;
+                        $save = \REDCap::saveData(
+                            $this->getClient()->getEm()->getProjectId(),
+                            'json',
+                            json_encode(array($data))
+                        );
 
-                    //Error checking here
+                        //Error checking here
 
-                    http_response_code(200);//return 200 on success
+                        http_response_code(200);//return 200 on success
+                    } else {
+                        http_response_code(400); //return bad request
+                    }
                 } else {
-                    http_response_code(400); //return bad request
+                    $this->getClient()->getEm()->emLog("Record $task_uuid has already been updated, skipping");
+                    http_response_code(200);//send 200 to remove picture from screen
                 }
-            } else {
-                $this->getClient()->getEm()->emLog("Record $task_uuid has already been updated, skipping");
-                http_response_code(200);//send 200 to remove picture from screen
-            }
 
-        } else {
-            $this->getClient()->getEm()->emError('Failed to update task, empty parameters recieved from client');
+            } else {
+                $this->getClient()->getEm()->emError('Failed to update task, empty parameters recieved from client');
+            }
+        } catch (\Exception $e) {
+            $this->getClient()->getEm()->emError($e->getMessage());
+            http_response_code(404);
+            echo json_encode(array('status' => 'error', 'message' => $e->getMessage()));
         }
     }
 
     private function prepareProviderTask($record, $data)
     {
-        $update_json = json_decode($record->full_json);
+        $update_json = json_decode($record->full_json)[0];
 //                $completion_time =
         $update_json->status = 'completed';
         $update_json->progress = '1';
@@ -192,12 +202,17 @@ class ImageAdjudication
     {
         $measurements = array();
         $survey = $this->getProviderSurvey();
+        $groupKey = Client::generateUUID();;
         foreach ($survey['elements'] as $element) {
+            if ($data[$element['identifier']] == null) {
+                continue;
+            }
+
             $measurement = new \stdClass();
             $measurement->allDay = false;
             $measurement->created = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->endTime = gmdate("Y-m-d\TH:i:s\Z");
-            $measurement->groupKey = "ec3a53c7-d945-4162-a5f6-bd55db933c53";
+            $measurement->groupKey = $groupKey;
             // if its multiple option make sure its in array
             if ($element['constraints']['type'] == 'MultiValueIntegerConstraints') {
                 $measurement->json = [$data[$element['identifier']]];
@@ -207,10 +222,12 @@ class ImageAdjudication
 
             $measurement->modified = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->sourceName = "pattern/pattern-survey-ui";
-            $measurement->sourceUniqueId = "sv-48daaf911b3fd19561b11resultssurveyAnswer01603998236552";
-            $measurement->sourceUniqueId = $survey['elements'] . $element['identifier'] . 'surveyAnswer0' . time();
+            $measurement->sourceUniqueId = $survey['uuid'] . $element['identifier'] . 'surveyAnswer0' . time();
             $measurement->startTime = gmdate("Y-m-d\TH:i:s\Z");
-            #$measurement->survey= {href: "/api/surveys/sv-48daaf911b3fd19561b1/1", title: "Provider - Review Test 1 Results"};
+            $measurement->survey = array(
+                "title" => $survey['name'],
+                "href" => $survey['href'],
+            );
             $measurement->surveyQuestionId = $element['identifier'];
             $measurement->type = "surveyAnswer";
             $measurements[] = $measurement;
