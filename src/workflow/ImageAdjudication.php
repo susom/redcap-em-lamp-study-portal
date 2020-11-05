@@ -124,7 +124,7 @@ class ImageAdjudication
      * @param $type
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function updateTask($user_uuid, $task_uuid, $results, $notes = '')
+    public function updateTask($user_uuid, $task_uuid, $description = '', $results)
     {
         if (isset($user_uuid) && isset($task_uuid) && isset($results)) {
 
@@ -134,7 +134,7 @@ class ImageAdjudication
 
             $this->setProviderSurvey($record_data->provider_survey_uuid);
             if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
-                $update_json = $this->prepareProviderTask($record_data, array('results' => $results, $notes));
+                $update_json = $this->prepareProviderTask($record_data, array('results' => $results, $description));
 
                 $options = [
                     'headers' => [

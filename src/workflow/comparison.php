@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $module->getWorkflow()->updateTask(
         filter_var($_POST['user_uuid'], FILTER_SANITIZE_STRING),
         filter_var($_POST['task_uuid'], FILTER_SANITIZE_STRING),
+        filter_var($_POST['description'], FILTER_SANITIZE_STRING),
         filter_var($_POST['type'], FILTER_SANITIZE_STRING)
     );
 }
