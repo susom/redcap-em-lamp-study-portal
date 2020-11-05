@@ -97,7 +97,7 @@ class Client extends \GuzzleHttp\Client
 
             $code = $response->getStatusCode();
 
-            if ($code == 200 || $code == 201) {
+            if ($code == 200 || $code == 201 || $code == 202) {
                 $content = $response->getBody()->getContents();
                 if (is_array(json_decode($content, true))) {
                     return json_decode($content, true);;

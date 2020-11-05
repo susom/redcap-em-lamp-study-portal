@@ -148,7 +148,7 @@ class ImageAdjudication
 
                     $response = $this->getClient()->request(
                         'put',
-                        FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $task_uuid,
+                        FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $record_data->provider_task_uuid,
                         $options
                     );
                     #$code = $response->getStatusCode();
@@ -158,6 +158,7 @@ class ImageAdjudication
                         $data['coordinator_response'] = $results;
                         $data['coordinator_user_id'] = USERID;
                         $data['notes'] = $notes;
+                        $data['full_json'] = json_encode($response);
                         $data['adjudication_date'] = $update_json->finishTime;
                         $save = \REDCap::saveData(
                             $this->getClient()->getEm()->getProjectId(),
@@ -193,7 +194,6 @@ class ImageAdjudication
         $update_json->status = 'completed';
         $update_json->progress = '1';
         $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
-        //TODO need to update measurements array,
         $update_json->measurements = $this->processMeasurements($data);
         return $update_json;
     }

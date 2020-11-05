@@ -1,13 +1,9 @@
 {
-	"name": "LAMP Study Portal",
-
-	"namespace": "Stanford\\LampStudyPortal",
-
-	"description": "A template for a REDCap External Module",
-
-	"documentation": "README.md",
-
-	"authors": [
+    "name": "LAMP Study Portal",
+    "namespace": "Stanford\\LampStudyPortal",
+    "description": "A template for a REDCap External Module",
+    "documentation": "README.md",
+    "authors": [
         {
             "name": "Andrew Martin",
             "email": "andy123@stanford.edu",
@@ -24,16 +20,12 @@
             "institution": "Stanford University"
         }
     ],
-
     "framework-version": 5,
-
-	"enable-every-page-hooks-on-system-pages": false,
-
+    "enable-every-page-hooks-on-system-pages": false,
     "no-auth-pages": [
         "src/workflow/cronImageScanner"
     ],
-
-	"project-settings": [
+    "project-settings": [
         {
             "key": "api-token",
             "name": "<b>REDCap API token to upload images.</b><br> ",
@@ -105,16 +97,14 @@
             }
         ]
     },
-
-	"system-settings": [
-		{
-			"key": "enable-system-debug-logging",
-			"name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
-			"required": false,
-			"type": "checkbox"
-		}
-	],
-
+    "system-settings": [
+        {
+            "key": "enable-system-debug-logging",
+            "name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
+            "required": false,
+            "type": "checkbox"
+        }
+    ],
     "crons": [
         {
             "cron_name": "lamp_image_scanner",
@@ -124,10 +114,10 @@
             "cron_max_run_time": "300"
         }
     ],
-	"compatibility": {
-		"php-version-min": "",
-		"php-version-max": "",
-		"redcap-version-min": "",
-		"redcap-version-max": ""
-	}
+    "compatibility": {
+        "php-version-min": "",
+        "php-version-max": "",
+        "redcap-version-min": "",
+        "redcap-version-max": ""
+    }
 }
