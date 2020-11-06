@@ -18,12 +18,16 @@ class ImageAdjudication
     /** @var array $patients */
     private $patients;
 
-    /** @var array $record_cache*/
+    /** @var array $record_cache */
     private $record_cache;
 
+    /** @var array $provider_survey */
     private $provider_survey;
+
     /**
      * @param Client $client
+     * @param bool $processPatient
+     * @throws \Exception
      */
     public function __construct($client, $processPatient = true)
     {
@@ -32,8 +36,6 @@ class ImageAdjudication
             $this->setPatients();
             $this->processPatients();
         }
-
-
         // this to tell other classes we need to track data.
         $this->getClient()->setSaveToREDCap(true);
     }
@@ -48,16 +50,13 @@ class ImageAdjudication
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) { //iterate in order, break when no toDoProviderTasks
-//                if ($patient['toDoProviderTaskCount'] == 0) { //commented for testing.
-//                    break;
-//                }
-                if($patient['user']['uuid'] == 'u-S5kGbk5lTYWNpKunztGe0g') //for testing, this user has a picture
-                    echo 'yes';
+                if ($patient['toDoProviderTaskCount'] == 0) { //commented for testing.
+                    break;
+                }
                 $patients[$index]['object'] = new Patient($this->getClient(), $patient); //Create new patient object
                 $journal_entry_photos = $patients[$index]['object']->getJournalEntryPhotos();
                 $provider_tasks = $patients[$index]['object']->getProviderTasks();
                 if (!empty($journal_entry_photos)) { //Users has pictures to upload
-                    //TODO determine whether or not to save records if no image found.
                     foreach($journal_entry_photos as $index => $photo) {
                         if(!isset($photo['media'])){ //Will only be set if corresponding provider task exists
                             $this->getClient()->getEm()->emLog(
@@ -69,20 +68,16 @@ class ImageAdjudication
                         }
 
                         if (!$this->checkRecordExist($photo['uuid'])) { //Not in our database, save record
-
                             $data['task_uuid'] = $photo['uuid']; //This is our record ID
                             $data['patient_uuid'] = $patient['user']['uuid'];
                             $data['activity_uuid'] = $photo['activityUuid'];
                             $data['created'] = $photo['created']; //keep track of photo upload time
                             $data['status'] = $photo['status'];
-                            #$data['base64_image'] = $tasks[$tIndex]['media']['object']->getBinary();
-//                            $data['redcap_event_name'] = $this->getClient()->getEm()->getFirstEventId(); //not necessary ? no event name needed
                             $data['full_json'] = json_encode($provider_tasks);
                             $data['confidence'] = $photo['confidence'];
                             $data['results'] = $photo['results']; //result yes/no
                             $data['provider_task_uuid'] = $provider_tasks[$index]['uuid'];
                             $data['provider_survey_uuid'] = $provider_tasks[$index]['survey']['uuid'];
-
 
                             $response = \REDCap::saveData('json', json_encode(array($data)));
                             if (!empty($response['errors'])) {
@@ -128,8 +123,6 @@ class ImageAdjudication
     {
         try {
             if (isset($user_uuid) && isset($task_uuid) && isset($results)) {
-
-
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
@@ -143,15 +136,15 @@ class ImageAdjudication
                             'Authorization' => "Bearer " . $this->getClient()->getToken(),
                             'Content-Type' => 'application/json'
                         ],
-                        'body' => json_encode($update_json)
+                        'body' => json_encode($update_json, JSON_UNESCAPED_SLASHES)
                     ];
 
                     $response = $this->getClient()->request(
                         'put',
-                        FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $record_data->provider_task_uuid,
+                        FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $record_data->provider_task_uuid . '?adminOverride=true&hideProviderTasks=false',
                         $options
                     );
-                    #$code = $response->getStatusCode();
+
                     if ($response) { //update record upon correct response from pattern
                         $data['task_uuid'] = $task_uuid;
                         $data['status'] = 'completed';
@@ -160,37 +153,44 @@ class ImageAdjudication
                         $data['notes'] = $notes;
                         $data['full_json'] = json_encode($response);
                         $data['adjudication_date'] = $update_json->finishTime;
+
                         $save = \REDCap::saveData(
                             $this->getClient()->getEm()->getProjectId(),
                             'json',
                             json_encode(array($data))
                         );
 
-                        //Error checking here
+                        if (!empty($save['errors'])) {
+                            if (is_array($save['errors']))
+                                $this->getClient()->getEm()->emError(implode(",", $save['errors']));
+                            else
+                                $this->getClient()->getEm()->emError($save['errors']);
+                            http_response_code(400); //return bad request
+                        }
 
                         http_response_code(200);//return 200 on success
+
                     } else {
+                        $this->getClient()->getEm()->emError("Record $task_uuid recieved no response from pattern PUT");
                         http_response_code(400); //return bad request
                     }
                 } else {
-                    $this->getClient()->getEm()->emLog("Record $task_uuid has already been updated, skipping");
+                    $this->getClient()->getEm()->emError("Record $task_uuid has already been updated, skipping");
                     http_response_code(200);//send 200 to remove picture from screen
                 }
 
             } else {
-                $this->getClient()->getEm()->emError('Failed to update task, empty parameters recieved from client');
+                $this->getClient()->getEm()->emError('Failed to update task, empty parameters received from client');
             }
         } catch (\Exception $e) {
             $this->getClient()->getEm()->emError($e->getMessage());
-            http_response_code(404);
-            echo json_encode(array('status' => 'error', 'message' => $e->getMessage()));
+            http_response_code(400);
         }
     }
 
     private function prepareProviderTask($record, $data)
     {
         $update_json = json_decode($record->full_json)[0];
-//                $completion_time =
         $update_json->status = 'completed';
         $update_json->progress = '1';
         $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
@@ -309,11 +309,10 @@ class ImageAdjudication
         } else {
             $this->patients = $patients;
         }
-
     }
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getProviderSurvey()
     {
@@ -321,7 +320,7 @@ class ImageAdjudication
     }
 
     /**
-     * @param mixed $provider_survey
+     * @param array $provider_survey
      */
     public function setProviderSurvey($surveyUUID)
     {

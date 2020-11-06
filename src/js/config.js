@@ -30,7 +30,7 @@ LAMP.put = (colRef, user_uuid, taskUUID, description, type) => {
             type: 'POST'
         })
             .done((res) => colRef.remove()) //remove column reference
-            .fail((err) => console.log(err)) //provide notification
+            .fail((jqXHR, textStatus, errorThrown) => console.log(textStatus, errorThrown)) //provide notification
 
         LAMP.decrementCounter();
     }
