@@ -53,6 +53,7 @@ class Patient
      * Patient constructor.
      * @param $client
      * @param $patient_json
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function __construct($client, $patient_json)
     {
@@ -123,8 +124,7 @@ class Patient
         if (!empty($provider_tasks)) { //Skip all downloads if no provider task, no adjudication needed
             $journal_entry_photos = $this->getJournalEntryPhotos();
             foreach($provider_tasks as $ind => $task) { //Iterate through provider tasks (max 3)
-//                if($task['status'] == 'inProgress') { // commented out for testing
-//                if($task['status'] == 'failed') { // only want to save images if status is pending
+                if($task['status'] == 'inProgress') { // commented out for testing
                     foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding task containing a photo, we have the match via $ind
                         if ($measurement['type'] == 'journalEntryPhoto') {
                             $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
@@ -134,7 +134,7 @@ class Patient
                             $journal_entry_photos[$ind]['results'] = $measurement['json'][0];
                         }
                     }
-//                }
+                }
             }
             //push updates to journal photos
             $this->setJournalEntryPhotos($journal_entry_photos);
@@ -156,7 +156,6 @@ class Patient
     {
         $this->media = $media;
     }
-
 
     /**
      * @return array

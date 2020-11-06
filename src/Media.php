@@ -28,22 +28,29 @@ class Media
     /** @var string $title */
     private $title;
 
-    /**
-     * @var Client $client
-     */
+    /**@var Client $client */
     private $client;
 
-
+    /**
+     * Media constructor.
+     * @param $client
+     * @param $title
+     * @param $api_endpoint
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function __construct($client, $title, $api_endpoint)
     {
         $this->setTitle($title);
         $this->setClient($client);
         $this->setApiEndpoint($api_endpoint);
-
         $this->setBinary($this->getClient()->request('GET', BASE_PATTERN_HEALTH_API_URL . ltrim($this->getApiEndpoint(), '/')));
         // Other code to run when object is instantiated
     }
 
+    /**
+     * @param $content
+     * @return string
+     */
     public function getMimeType($content)
     {
         $imgdata = base64_decode($content);
@@ -54,6 +61,13 @@ class Media
         return $mime_type;
     }
 
+    /**
+     * @param $record
+     * @param $field
+     * @param $event
+     * @param $api_token
+     * @throws \Exception
+     */
     public function uploadImage($record, $field, $event, $api_token)
     {
         file_put_contents('/tmp/' . $this->getTitle() . '.png', $this->getBinary());
@@ -64,10 +78,18 @@ class Media
                 'name' => $this->getTitle()
             ),
             $record, $field, $event, $api_token);
-        #unlink('/var/log/redcap/'.$this->getTitle().'.png');
     }
 
-    // Write to the API
+
+    /**
+     * @param $file
+     * @param $record
+     * @param $field
+     * @param $event
+     * @param $api_token
+     * @return bool
+     * @throws \Exception
+     */
     public function writeFileToApi($file, $record, $field, $event, $api_token)
     {
         // Prepare upload file
