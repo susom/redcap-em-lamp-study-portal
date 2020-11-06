@@ -13,7 +13,7 @@ This External Module supports the following functions:
     of Pattern Health data within REDCap.
 
 
-##Project Setup
+## Project Setup
 
 The following settings are required upon setup of this EM:
 
@@ -23,7 +23,8 @@ The following settings are required upon setup of this EM:
     - Selecting Image adjudication will set this project to pull in all data with open Provider tasks needing attention.
     This option also provides a simple UI for the adjudication process.
     - Selecting Patient Import will set this project to pull in all data pertaining to the LAMP study patients and use REDCap as a mirrored database
-3. `Pattern Health group id`: The auto-generated group ID provided by pattern health for the study, **E.g: g--QpZ2RFCw3mPdwZlQdWSD1**
+3. `Pattern Health group id`: The auto-generated group ID provided by pattern health for the study,
+  **E.g: g--QpZ2RFCw3mPdwZlQdWSD1**
 4. `Pattern Health Email`: Login credential email for Pattern Health
 5. `Pattern Health Password`: Login credential password for Pattern Health
 
