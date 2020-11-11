@@ -112,7 +112,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         global $Proj;
             try {
                 //Pull only non completed images
-                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] = "completed"'));
+                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
                 $payload = array();
                 foreach($records as $index => $record) {
                     $doc_id = $record->image_file;
@@ -120,7 +120,6 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                         'task_uuid' => $record->task_uuid,
                         'user_uuid' => $record->patient_uuid,
                         'photo_binary' => $this->getDocumentName($doc_id)
-//                        'full_json' => $record->full_json
                     );
                     array_push($payload, $pic_info);
                 }

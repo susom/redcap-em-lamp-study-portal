@@ -5,14 +5,25 @@ LAMP.bindEvents = () => {
         let colRef = $(this).parents('.col-lg-6');
         let cardBody = $(this).parent().siblings('.card-body');
         let description = $(cardBody).find('.form-control').val();
+        let confidence = $(cardBody).find('.form-control-range').val();
+
 
         $(this).hasClass('agree')
-            ? LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), description, '1')
-            : LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), description, '2');
+            ? LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), description, confidence,'1')
+            : LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), description, confidence,'2');
     });
+
+    // Set default value #
+    $('.confidenceCount').html($('.form-control-range').val());
+
+    // Update value on screen
+    $('.form-control-range').on('input change', function(){
+        $(this).siblings('.confidenceCount').html($(this).val());
+    })
+
 }
 
-LAMP.put = (colRef, user_uuid, taskUUID, description, type) => {
+LAMP.put = (colRef, user_uuid, taskUUID, description, confidence, type) => {
     if (!description) {
         $(colRef).find('.form-control').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
     } else {
@@ -22,7 +33,8 @@ LAMP.put = (colRef, user_uuid, taskUUID, description, type) => {
             'user_uuid': user_uuid,
             'task_uuid': taskUUID,
             'notes': description,
-            'type': type
+            'confidence': confidence,
+            'results': type
         };
 
         $.ajax({

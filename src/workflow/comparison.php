@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $module->getWorkflow()->updateTask(
         filter_var($_POST['user_uuid'], FILTER_SANITIZE_STRING),
         filter_var($_POST['task_uuid'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['type'], FILTER_SANITIZE_STRING),
+        filter_var($_POST['results'], FILTER_SANITIZE_STRING),
+        filter_var($_POST['confidence'], FILTER_SANITIZE_STRING),
         filter_var($_POST['notes'], FILTER_SANITIZE_STRING)
     );
 }
@@ -48,8 +49,26 @@ if(!empty($image_payload)){
                 data-task-uuid='<?php echo $image['task_uuid']; ?>'
                 data-user-uuid='<?php echo $image['user_uuid']; ?>'
             >
-                <textarea placeholder="Please provide a description..." class="form-control" rows="3"></textarea>
-
+            <form>
+                <div class="form-group">
+                    <label for="textarea-<?php echo $index; ?>" >Result Description</label>
+                    <textarea
+                        id="textarea-<?php echo $index; ?>"
+                        placeholder="Please provide a description..."
+                        class="form-control"
+                        rows="3"
+                    ></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="range-<?php echo $index; ?>" >Confidence</label>
+                    <div class="d-flex justify-content-center ">
+                        <form class="range-field w-75">
+                            <input type="range" class="form-control-range" id="range-<?php echo $index; ?>">
+                        </form>
+                        <span class="font-weight-bold text-primary mt-1 ml-2 confidenceCount"></span>
+                    </div>
+                </div>
+            </form>
             </div>
             <div class="card-body">
                 <button class="btn btn-success agree">Positive</button>
@@ -61,8 +80,8 @@ if(!empty($image_payload)){
     } else { //not a new row
         ?>
         <div class='col-lg-6'>
-            <div class='card text-center' style="background-color: rgb(241,241,241)">
-                <div class='card-content' style="margin-top:10px;">
+            <div class='card' style="background-color: rgb(241,241,241)">
+                <div class='card-content text-center' style="margin-top:10px;">
                     <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
                 </div>
                 <div
@@ -70,9 +89,27 @@ if(!empty($image_payload)){
                     data-task-uuid='<?php echo $image['task_uuid']; ?>'
                     data-user-uuid='<?php echo $image['user_uuid']; ?>'
                 >
-                    <textarea placeholder="Please provide a description..." class="form-control" rows="3"></textarea>
+                    <form>
+                        <div class="form-group">
+                            <label for="textarea-<?php echo $index; ?>" >Result Description</label>
+                            <textarea
+                                id="textarea-<?php echo $index; ?>"
+                                class="form-control"
+                                rows="3"
+                            ></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="range-<?php echo $index; ?>" >Confidence</label>
+                            <div class="d-flex justify-content-center ">
+                                <form class="range-field w-75">
+                                    <input type="range" class="form-control-range" id="range-<?php echo $index; ?>">
+                                </form>
+                                <span class="font-weight-bold text-primary mt-1 ml-2 confidenceCount"></span>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div class='card-body'>
+                <div class='card-body text-center'>
                     <button class="btn btn-success agree">Positive</button>
                     <button class="btn btn-danger disagree">Negative</button>
                 </div>
@@ -91,5 +128,4 @@ if(!empty($image_payload)){
 
 
 ?>
-
 <script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>

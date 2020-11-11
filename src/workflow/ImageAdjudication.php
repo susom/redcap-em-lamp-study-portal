@@ -72,8 +72,8 @@ class ImageAdjudication
                             $data['patient_uuid'] = $patient['user']['uuid'];
                             $data['activity_uuid'] = $photo['activityUuid'];
                             $data['created'] = $photo['created']; //keep track of photo upload time
-                            $data['status'] = $photo['status'];
-                            $data['full_json'] = json_encode($provider_tasks);
+                            $data['status'] = $provider_tasks[$index]['status'];
+                            $data['full_json'] = json_encode($provider_tasks[$index]);
                             $data['confidence'] = $photo['confidence'];
                             $data['results'] = $photo['results']; //result yes/no
                             $data['provider_task_uuid'] = $provider_tasks[$index]['uuid'];
@@ -116,20 +116,22 @@ class ImageAdjudication
     /**
      * @param $user_uuid
      * @param $task_uuid
+     * @param $confidence Adjudicator confidence
+     * @param $results
      * @param $type
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function updateTask($user_uuid, $task_uuid, $results, $notes = '')
+    public function updateTask($user_uuid, $task_uuid, $results, $confidence, $notes = '')
     {
         try {
-            if (isset($user_uuid) && isset($task_uuid) && isset($results)) {
+            if (isset($user_uuid) && isset($task_uuid) && isset($results) && isset($confidence)) {
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
                 $this->setProviderSurvey($record_data->provider_survey_uuid);
                 //if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
                 if (empty($record_data->adjudication_date)) { //If the record hasn't already been adjudicated
-                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'notes' => $notes));
+                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'notes' => $notes, 'adj_conf'=> $confidence));
 
                     $options = [
                         'headers' => [
@@ -153,7 +155,7 @@ class ImageAdjudication
                         $data['notes'] = $notes;
                         $data['full_json'] = json_encode($response);
                         $data['adjudication_date'] = $update_json->finishTime;
-
+                        $data['adj_conf'] = $confidence;
                         $save = \REDCap::saveData(
                             $this->getClient()->getEm()->getProjectId(),
                             'json',
@@ -190,7 +192,7 @@ class ImageAdjudication
 
     private function prepareProviderTask($record, $data)
     {
-        $update_json = json_decode($record->full_json)[0];
+        $update_json = json_decode($record->full_json);
         $update_json->status = 'completed';
         $update_json->progress = '1';
         $update_json->finishTime = gmdate("Y-m-d\TH:i:s\Z");
@@ -211,19 +213,22 @@ class ImageAdjudication
             $measurement = new \stdClass();
             $measurement->allDay = false;
             $measurement->created = gmdate("Y-m-d\TH:i:s\Z");
+            $measurement->startTime = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->endTime = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->groupKey = $groupKey;
             // if its multiple option make sure its in array
             if ($element['constraints']['type'] == 'MultiValueIntegerConstraints') {
                 $measurement->json = [$data[$element['identifier']]];
             } else {
-                $measurement->json = $data[$element['identifier']];
+                if($element['identifier'] === "adj_conf")
+                    $measurement->json = (int)$data[$element['identifier']];
+                else
+                    $measurement->json = $data[$element['identifier']];
             }
 
             $measurement->modified = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->sourceName = "pattern/pattern-survey-ui";
             $measurement->sourceUniqueId = $survey['uuid'] . $element['identifier'] . 'surveyAnswer0' . time();
-            $measurement->startTime = gmdate("Y-m-d\TH:i:s\Z");
             $measurement->survey = array(
                 "title" => $survey['name'],
                 "href" => $survey['href'],

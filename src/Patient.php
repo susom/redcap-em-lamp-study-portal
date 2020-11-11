@@ -129,7 +129,7 @@ class Patient
                         if ($measurement['type'] == 'journalEntryPhoto') {
                             $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
                         } elseif ($measurement['surveyQuestionId'] == 'test_conf') {
-                            $journal_entry_photos[$ind]['confidence'] = $measurement['json'][0];
+                            $journal_entry_photos[$ind]['confidence'] = $measurement['json'];
                         } elseif($measurement['surveyQuestionId'] == 'results') {
                             $journal_entry_photos[$ind]['results'] = $measurement['json'][0];
                         }
