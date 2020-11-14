@@ -1,0 +1,12 @@
+{
+    "act-CtuR_KuzShXe3k_ZZJVHxA": {
+        "prefix": "c_",
+        "event": "baseline_arm_1",
+        "description": "Review and Sign Informed Consent"
+    },
+    "act-ZNtlIlwwW0OD_2nREuvHUQ": {
+        "prefix": "s_",
+        "event": "baseline_arm_1",
+        "description": "Screening"
+    }
+}

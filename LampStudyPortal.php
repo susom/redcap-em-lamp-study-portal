@@ -69,6 +69,8 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 if ($this->getProjectSetting("workflow") == "image_adjudication" && $run ) {
                     $this->setWorkflow(new ImageAdjudication($this->getClient(), $this->processPatients));
                 } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
+                    $this->setWorkflow(new DataImport($this->getClient()));
+
                     //TODO finish data pulling
     //                    if($RepeatingFormsEvents){ //Necessary for patient saving on numerous tasks
     //                        $this->setWorkflow(new DataImport($this->getClient()));
