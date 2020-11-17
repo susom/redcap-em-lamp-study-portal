@@ -43,7 +43,7 @@ class DataImport
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
                 $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
-                if(! $this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
+                if(!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
                     $this->createPatientRecord($patientObj, $patientObj->getConstants());
                     $this->getClient()->getEm()->emLog('Patient UUID ' .  $patient['user']['uuid'] . ' Created');
                 }
@@ -61,27 +61,75 @@ class DataImport
     {
         global $Proj;
         $all_tasks = $patient->getTasks();
+        $data = [];
         foreach($all_tasks as $index => $task) {
             if(!empty($task['measurements'])){ // The user has some survey answers
                 $map = $this->getTaskMap($task);
                 if(!empty($map)) { //
-                    $data = [];
-                    foreach($task['measurements'] as $measurement) {
+                    $form_data = [];
+                    $missing_fields = [];
+                    $prefix =$map['prefix'];
+                    foreach ($task['measurements'] as $measurement) {
                         $question_id = $measurement['surveyQuestionId'];
-                        $value = is_array($measurement['json']) ? json_encode($measurement['json']) : var_export($measurement['json']);
-                        $full_name = $map['prefix'] . $question_id;
-                        if(!isset($Proj->metadata[$full_name]))
-                            $this->getClient()->getEm()->emError('Variable ' . $full_name . ' does not exist within REDCap, skipping');
+                        $value = is_array($measurement['json']) ? json_encode($measurement['json']) : $this->castAsString($measurement['json']);
+                        $full_name = $prefix . $question_id;
+                        if (!isset($Proj->metadata[$full_name]))
+                            array_push($missing_fields, $full_name);
+
                         else
-                            $data[$full_name] = $value; //Set data
+                            $form_data[$full_name] = $value; //Set data
+                    }
+
+                    if (!empty($task['finishTime'])) {
+                       if(! isset($Proj->metadata[$prefix . 'finish_time']))
+                           array_push($missing_fields, $prefix . 'finish_time');
+                       else
+                           $form_data[$prefix . 'finish_time'] = $task['finishTime'];
+                    }
+
+                    if (!empty($missing_fields))
+                        $this->getClient()->getEm()->emError(implode(",", $missing_fields));
+
+                    if(!empty($form_data)) {
+                        $form_data['redcap_event_name'] = $map['event_name'];
+                        $form_data['record_id'] = $patient->getPatientJson()['user']['uuid'];
+                        $data[] = $form_data;
                     }
                 }
             }
-//                    $data;
         }
+        if(! empty($data)) {
+            $results =  \REDCap::saveData('json', json_encode($data));
+            if (!empty($response['errors'])) {
+                if (is_array($response['errors'])) {
+                    throw new \Exception(implode(",", $response['errors']));
+                } else {
+                    throw new \Exception($response['errors']);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * @param $value
+     * @return string
+     */
+    public function castAsString($value)
+    {
+        if (is_bool($value))
+            $converted = $value ?  'true' : 'false';
+        else
+            $converted = strval($value);
+
+        return $converted;
     }
 
 
+    /**
+     * @param $task
+     * @return array|mixed
+     */
     public function getTaskMap($task)
     {
         $map = $this->getMap();
@@ -111,11 +159,16 @@ class DataImport
                     $data[$redcap_variable_name] = is_string($patient_json['user'][$pattern_key]) ? $patient_json['user'][$pattern_key] : (string)(int)$patient_json['user'][$pattern_key];
                 }
             }
+            $data['redcap_event_name'] = 'baseline_arm_1'; //necessary
             $result =  \REDCap::saveData('json', json_encode(array($data)));
-            if (!empty($result['errors'])) $this->getClient()->getEm()->emError("Errors saving result: ", '', '', $result);
-
+            if (!empty($response['errors'])) {
+                if (is_array($response['errors']))
+                    $this->getClient()->getEm()->emError(implode(",", $response['errors']));
+                else
+                    $this->getClient()->getEm()->emError($response['errors']);
+            }
         } else {
-            $this->getClient()->getEm()->emError('No patient currently passed', '', $patient, $attributes);
+            $this->getClient()->getEm()->emError('Either patient or attribute map is null: ', '', $patient, $attributes);
         }
     }
 

@@ -15,21 +15,13 @@ class Patient
     /**
      * const variables
      */
-    const uuid = 'patient_uuid';
-    const email = 'patient_email';
-    const mobileNumber = 'patient_mobile_number';
-    const firstName = 'patient_first_name';
-    const lastName = 'patient_last_name';
-//    const timeZone = 'patient_time_zone';
-//    const locale = 'patient_locale';
-    const gender = 'patient_gender';
-//    const inHospital = 'patient_in_hospital';
-    const birthDate = 'patient_birth_date';
-//    const accountStatus = 'patient_account_status';
-    const lastLoginTime = 'patient_last_login';
-//    const locked = 'patient_locked';
-//    const verified = 'patient_verified';
-//    const mobileNumberVerified = 'patient_mobile_verified';
+    const email = 'email';
+    const mobileNumber = 'mobile_number';
+    const firstName = 'first_name';
+    const lastName = 'last_name';
+    const gender = 'gender';
+    const birthDate = 'birth_date';
+    const lastLoginTime = 'last_login_time';
 
     /** @var array $patient_json */
     private $patient_json;

@@ -7,5 +7,5 @@ namespace Stanford\LampStudyPortal;
  */
 $startTS = microtime(true);
 
-$module->initialize();
+//$module->initialize();
 $module->emLog("Duation of run: " . microtime(true) - $startTS );
