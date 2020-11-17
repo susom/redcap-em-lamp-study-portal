@@ -44,6 +44,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         parent::__construct();
 //        $this->initialize();
+
     }
 
     public function initialize()

@@ -94,6 +94,11 @@
                 "name": "Image Adjudication Client",
                 "icon": "gear",
                 "url": "src/workflow/comparison.php"
+            },
+            {
+                "name": "Import Test page",
+                "icon": "gear",
+                "url": "src/workflow/test.php"
             }
         ]
     },
