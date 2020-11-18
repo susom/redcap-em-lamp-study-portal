@@ -19,9 +19,14 @@ class DataImport
     private $ts_start;
 
     /**
-     * Task -> Redcap conversion map
+     * @var -> Redcap conversion map
      */
      private $map;
+
+    /**
+     * @var -> List of activities to ignore
+     */
+     private $ignore_list;
 
     /**
      * DataImport constructor.
@@ -32,6 +37,7 @@ class DataImport
         $this->setClient($client);
         $this->setTsStart(microtime(true));
         $this->setMap(json_decode(file_get_contents($this->getClient()->getEm()->getModulePath() . 'src/workflow/map.json'), true));
+        $this->setIgnoreList(json_decode(file_get_contents($this->getClient()->getEm()->getModulePath() . 'src/workflow/ignore.json'), true));
         $this->processPatients();
     }
 
@@ -68,16 +74,25 @@ class DataImport
                 if(!empty($map)) { //
                     $form_data = [];
                     $missing_fields = [];
-                    $prefix =$map['prefix'];
+                    $prefix = $map['prefix'];
                     foreach ($task['measurements'] as $measurement) {
                         $question_id = $measurement['surveyQuestionId'];
                         $value = is_array($measurement['json']) ? json_encode($measurement['json']) : $this->castAsString($measurement['json']);
-                        $full_name = $prefix . $question_id;
+                        $full_name = strtolower(str_replace(' ', '_', ($prefix . $question_id))); //Replace all spaces with underscores for REDCAP, lowercase
+                        if($full_name == 'rt1_')
+                            $a = 1;
+                        if(!isset($question_id)) { // This measurement is a Journal entry type
+                            if(isset($measurement['media']['href'])) //Photo
+                                $form_data[$prefix . 'journal_href'] = $measurement['media']['href']; //Save the href for later.
+                            elseif(isset($measurement['text']))
+                                $form_data[$prefix . 'submission_text'] = $measurement['text']; //Save the href for later.
+                            continue;
+                        }
+
                         if (!isset($Proj->metadata[$full_name]))
                             array_push($missing_fields, $full_name);
-
                         else
-                            $form_data[$full_name] = $value; //Set data
+                            $form_data[$full_name] = $value; //Set data, redcap can only support lowercase
                     }
 
                     if (!empty($task['finishTime'])) {
@@ -88,18 +103,28 @@ class DataImport
                     }
 
                     if (!empty($missing_fields))
-                        $this->getClient()->getEm()->emError(implode(",", $missing_fields));
+                        $this->getClient()->getEm()->emError(implode(" ", $missing_fields));
 
                     if(!empty($form_data)) {
-                        $form_data['redcap_event_name'] = $map['event_name'];
-                        $form_data['record_id'] = $patient->getPatientJson()['user']['uuid'];
-                        $data[] = $form_data;
+                        if(empty($data[$map['event_name']])){
+                            $data[$map['event_name']] = [];
+                        }
+                        $data[$map['event_name']] = array_merge($data[$map['event_name']], $form_data);
+
                     }
                 }
             }
         }
         if(! empty($data)) {
-            $results =  \REDCap::saveData('json', json_encode($data));
+            $payload = [];
+            foreach($data as $event_name => $fields){
+                $payload[] = array_merge($fields, [
+                    "record_id" => $patient->getPatientJson()['user']['uuid'],
+                    "redcap_event_name" => $event_name
+                ]);
+            }
+
+            $results =  \REDCap::saveData('json', json_encode($payload));
             if (!empty($response['errors'])) {
                 if (is_array($response['errors'])) {
                     throw new \Exception(implode(",", $response['errors']));
@@ -133,13 +158,28 @@ class DataImport
     public function getTaskMap($task)
     {
         $map = $this->getMap();
-        if(isset($map[$task['activityUuid']])) {
-            return $map[$task['activityUuid']];
-        } else {
-            $this->getClient()->getEm()->emLog('Unmapped task :' . $task['activityUuid'] . ' Description '. $task['description']);
-            return [];
-        }
+        $ignore = $this->getIgnoreList();
 
+//        if(isset($ignore[$task['activityUuid']])) //If task id is in ignore list, skip without logging
+//            return [];
+
+        if($task['type'] === 'signDocument'){
+            if(isset($map[$task['activityUuid']]))
+                return $map[$task['activityUuid']];
+            else
+                $this->getClient()->getEm()->emLog('Unmapped task :' . $task['activityUuid'] . ' Description '. $task['description']);
+        } else {
+
+            if(isset($map[$task['survey']['uuid']])) { //Else return the mapping obj
+                return $map[$task['survey']['uuid']];
+            } else {
+
+                if(isset($task['survey']['uuid'])){
+                    $this->getClient()->getEm()->emLog('Unmapped task :' . $task['survey']['uuid'] . ' Description '. $task['survey']['name']);
+                    return [];
+                }
+            }
+        }
     }
 
 
@@ -277,6 +317,22 @@ class DataImport
     public function setMap($map)
     {
         $this->map = $map;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIgnoreList()
+    {
+        return $this->ignore_list;
+    }
+
+    /**
+     * @param mixed $ignore_list
+     */
+    public function setIgnoreList($ignore_list)
+    {
+        $this->ignore_list = $ignore_list;
     }
 
 }

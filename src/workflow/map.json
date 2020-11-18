@@ -1,43 +1,72 @@
 {
+    "sv-pEOYf-h1Wic_NgAGTaeXDg": {
+        "prefix": "s_",
+        "event_name": "baseline_arm_1",
+        "description": "Screening"
+    },
+    "sv-Ei6fjToQipXdA8r2bcllwQ": {
+        "prefix": "rt1_",
+        "event_name": "test_1_arm_1",
+        "description": "Test 1 Report Results & Symptom check"
+    },
+    "sv-86cacd90bc9d70d6": {
+        "prefix": "rt1_",
+        "event_name": "test_2_arm_1",
+        "description": "Test 2 Report Results & Symptom check"
+    },
+    "sv-87e727695e434edc": {
+        "prefix": "rt1_",
+        "event_name": "test_3_arm_1",
+        "description": "Test 3 Report Results & Symptom check"
+    },
+    "sv-48daaf911b3fd19561b1": {
+        "prefix": "p1_",
+        "event_name": "test_1_arm_1",
+        "description": "Provider - Review Test 1 Results (Correct)"
+    },
+    "sv-cSMRSDza-MZa_XccVlRxnw": {
+        "prefix": "p1_",
+        "event_name": "test_2_arm_1",
+        "description": "Provider - Review Test 2 Results"
+    },
+    "sv-4bfb8343b0a275f4d623": {
+        "prefix": "p1_",
+        "event_name": "test_3_arm_1",
+        "description": "Provider - Review Test 3 Results"
+    },
+    "sv-bd7b23b48491f118": {
+        "prefix" : "t1_",
+        "event_name": "test_1_arm_1",
+        "description": "Perform COVID Test 1"
+    },
+    "sv-yad0BBiDVDdOFrRidO4V9A": {
+        "prefix" : "t1_",
+        "event_name": "test_2_arm_1",
+        "description": "Perform COVID Test 2"
+    },
+    "sv-89b3-80fc2f2663b4": {
+        "prefix" : "t1_",
+        "event_name": "test_3_arm_1",
+        "description": "Perform COVID Test 3"
+    },
+    "sv-AKcRYH0vWr8O6gkD6IFvZw": {
+        "prefix" : "u_",
+        "event_name": "baseline_arm_1",
+        "description": "Usability"
+    },
+    "sv-dia09LSdqN1LBY4QWT89sQ": {
+        "prefix" : "b_",
+        "event_name": "baseline_arm_1",
+        "description": "Before you begin"
+    },
     "act-CtuR_KuzShXe3k_ZZJVHxA": {
         "prefix": "c_",
         "event_name": "baseline_arm_1",
         "description": "Review and Sign Informed Consent"
     },
-    "act-ZNtlIlwwW0OD_2nREuvHUQ": {
-        "prefix": "s_",
+    "act-341dsXzhJeCN_6aBgmac-Q": {
+        "prefix": "rs_",
         "event_name": "baseline_arm_1",
-        "description": "Screening"
-    },
-
-    "act-RWDqpmYJtNiGjY11KmiJfg": {
-        "prefix": "rt1_",
-        "event_name": "test_1_arm_1",
-        "description": "Record Test 1 Results"
-    },
-    "act-ABXKGKFyPQ86I01X9fFZxQ": {
-        "prefix": "p1_",
-        "event_name": "test_1_arm_1",
-        "description": "Provider - Review Test 1 Results"
-    },
-    "act-BdILbRudZhTn6xy7U_D-oA": {
-        "prefix" : "t1_",
-        "event_name": "test_1_arm_1",
-        "description": "Perform COVID Test 1"
-    },
-    "act-2hMrhWUoWjiR00JN7SJGHQ": {
-        "prefix" : "b_",
-        "event_name": "",
-        "description": "Before you begin"
-    },
-    "act-aS0uhw1ZHGzwZH5QOmDSRA": {
-        "prefix" : "pv_",
-        "event_name": "",
-        "description": "Placeholder video"
-    },
-    "act-F-Ug9sjeLcDtkwug5XSvIA": {
-        "prefix" : "rj_",
-        "event_name": "",
-        "description": "Record a journal entry"
+        "description": "HIPAA Authorization Consent"
     }
 }

@@ -38,13 +38,10 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     private $workflow;
 
     public $processPatients = true;
-//    /** @param \ExternalModules\FrameworkVersion3\Framework framework */
 
     public function __construct()
     {
         parent::__construct();
-//        $this->initialize();
-
     }
 
     public function initialize()
@@ -94,7 +91,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
             $response = $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
-            $this->emLog($response->getBody());
+//            $this->emLog($response->getBody());
         }
     }
 
