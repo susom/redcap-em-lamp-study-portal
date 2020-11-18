@@ -160,26 +160,25 @@ class DataImport
         $map = $this->getMap();
         $ignore = $this->getIgnoreList();
 
-//        if(isset($ignore[$task['activityUuid']])) //If task id is in ignore list, skip without logging
-//            return [];
+        if(isset($ignore[$task['activityUuid']])) //If task id is in ignore list, skip without logging
+            return [];
 
         if($task['type'] === 'signDocument'){
             if(isset($map[$task['activityUuid']]))
                 return $map[$task['activityUuid']];
-            else
-                $this->getClient()->getEm()->emLog('Unmapped task :' . $task['activityUuid'] . ' Description '. $task['description']);
         } else {
-
             if(isset($map[$task['survey']['uuid']])) { //Else return the mapping obj
                 return $map[$task['survey']['uuid']];
             } else {
 
-                if(isset($task['survey']['uuid'])){
-                    $this->getClient()->getEm()->emLog('Unmapped task :' . $task['survey']['uuid'] . ' Description '. $task['survey']['name']);
+                if (isset($task['survey']['uuid'])) { //some elements have a survey UUID
+                    $this->getClient()->getEm()->emLog('Unmapped task :' . $task['survey']['uuid'] . ' Description ' . $task['survey']['name']);
                     return [];
                 }
             }
         }
+        $this->getClient()->getEm()->emLog('Unmapped task :' . $task['activityUuid'] . ' Description ' . $task['description']);
+        return [];
     }
 
 
