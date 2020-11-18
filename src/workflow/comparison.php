@@ -49,30 +49,46 @@ if(!empty($image_payload)){
                 data-task-uuid='<?php echo $image['task_uuid']; ?>'
                 data-user-uuid='<?php echo $image['user_uuid']; ?>'
             >
-            <form>
-                <div class="form-group">
-                    <label for="textarea-<?php echo $index; ?>" >Result Description</label>
-                    <textarea
-                        id="textarea-<?php echo $index; ?>"
-                        placeholder="Please provide a description..."
-                        class="form-control"
-                        rows="3"
-                    ></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="range-<?php echo $index; ?>" >Confidence</label>
-                    <div class="d-flex justify-content-center ">
-                        <form class="range-field w-75">
-                            <input type="range" class="form-control-range" id="range-<?php echo $index; ?>">
-                        </form>
-                        <span class="font-weight-bold text-primary mt-1 ml-2 confidenceCount"></span>
+                <form>
+                    <div class="form-group">
+                        <label for="textarea-<?php echo $index; ?>" >Result Description (Optional)</label>
+                        <textarea
+                            id="textarea-<?php echo $index; ?>"
+                            class="form-control"
+                            rows="3"
+                        ></textarea>
                     </div>
-                </div>
-            </form>
-            </div>
-            <div class="card-body">
-                <button class="btn btn-success agree">Positive</button>
-                <button class="btn btn-danger disagree">Negative</button>
+                    <div class="form-group result-box">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="results"  value="1">
+                            <label class="form-check-label">
+                                Positive
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="results"  value="2">
+                            <label class="form-check-label">
+                                Negative
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="results" value="3">
+                            <label class="form-check-label">
+                                Unclear
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="range-<?php echo $index; ?>" >Confidence</label>
+                        <div class="d-flex justify-content-center ">
+                            <form class="range-field w-75">
+                                <input type="range" class="form-control-range" id="range-<?php echo $index; ?>">
+                            </form>
+                            <span class="font-weight-bold text-primary mt-1 ml-2 confidenceCount"></span>
+                        </div>
+                    </div>
+                </form>
+                <button class="float-right btn btn-primary submit">Submit</button>
             </div>
         </div>
     </div>
@@ -91,12 +107,32 @@ if(!empty($image_payload)){
                 >
                     <form>
                         <div class="form-group">
-                            <label for="textarea-<?php echo $index; ?>" >Result Description</label>
+                            <label for="textarea-<?php echo $index; ?>" >Result Description (Optional)</label>
                             <textarea
                                 id="textarea-<?php echo $index; ?>"
                                 class="form-control"
                                 rows="3"
                             ></textarea>
+                        </div>
+                        <div class="form-group result-box">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="results"  value="1">
+                                <label class="form-check-label">
+                                    Positive
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="results"  value="2">
+                                <label class="form-check-label">
+                                    Negative
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="results" value="3">
+                                <label class="form-check-label">
+                                    Unclear
+                                </label>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="range-<?php echo $index; ?>" >Confidence</label>
@@ -108,11 +144,14 @@ if(!empty($image_payload)){
                             </div>
                         </div>
                     </form>
+                    <button class="float-right btn btn-primary submit">Submit</button>
                 </div>
-                <div class='card-body text-center'>
-                    <button class="btn btn-success agree">Positive</button>
-                    <button class="btn btn-danger disagree">Negative</button>
-                </div>
+<!--                <div class='card-body'>-->
+<!--                    <button class="btn btn-success agree">Positive</button>-->
+<!--                    <button class="btn btn-danger disagree">Negative</button>-->
+<!--                    <button class="btn btn-primary submit">Submit</button>-->
+<!--                </div>-->
+
             </div>
         </div>
         <?php
