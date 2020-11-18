@@ -63,8 +63,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     ));
 
                 $this->getClient()->checkToken();
-                $run = true;
-                if ($this->getProjectSetting("workflow") == "image_adjudication" && $run ) {
+                if ($this->getProjectSetting("workflow") == "image_adjudication") {
                     $this->setWorkflow(new ImageAdjudication($this->getClient(), $this->processPatients));
                 } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
                     $this->setWorkflow(new DataImport($this->getClient()));
