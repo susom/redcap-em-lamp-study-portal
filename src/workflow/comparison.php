@@ -40,8 +40,8 @@ if(!empty($image_payload)){
 </div>
 <div class='row' style="margin-bottom: 20px;">
     <div class='col-lg-6'>
-        <div class='card text-center' style="background-color: rgb(241,241,241)">
-            <div class='card-content' style="margin-top:10px;">
+        <div class='card' style="background-color: rgb(241,241,241)">
+            <div class='card-content text-center' style="margin-top:10px;">
                 <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
             </div>
             <div
@@ -88,7 +88,7 @@ if(!empty($image_payload)){
                         </div>
                     </div>
                 </form>
-                <button class="float-right btn btn-primary submit">Submit</button>
+                <button class="float-right btn btn-primary submit">Submits</button>
             </div>
         </div>
     </div>
@@ -146,12 +146,6 @@ if(!empty($image_payload)){
                     </form>
                     <button class="float-right btn btn-primary submit">Submit</button>
                 </div>
-<!--                <div class='card-body'>-->
-<!--                    <button class="btn btn-success agree">Positive</button>-->
-<!--                    <button class="btn btn-danger disagree">Negative</button>-->
-<!--                    <button class="btn btn-primary submit">Submit</button>-->
-<!--                </div>-->
-
             </div>
         </div>
         <?php
