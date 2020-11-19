@@ -88,7 +88,7 @@ if(!empty($image_payload)){
                         </div>
                     </div>
                 </form>
-                <button class="float-right btn btn-primary submit">Submits</button>
+                <button class="float-right btn btn-primary submit">Submit</button>
             </div>
         </div>
     </div>

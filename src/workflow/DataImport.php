@@ -18,15 +18,16 @@ class DataImport
     /** @var String $ts_start*/
     private $ts_start;
 
-    /**
-     * @var -> Redcap conversion map
-     */
+    /** @var -> Redcap conversion map */
      private $map;
 
-    /**
-     * @var -> List of activities to ignore
-     */
+    /** @var -> List of activities to ignore */
      private $ignore_list;
+
+    /**
+     * @var array $post_processed_files
+     */
+     private $post_processed_files;
 
     /**
      * DataImport constructor.
@@ -55,6 +56,7 @@ class DataImport
                 }
                 $this->createTaskRecord($patientObj);
             }
+            $this->postProcessUpload();
         } else {
             $this->getClient()->getEm()->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
             \REDCap::logEvent("ERROR/EXCEPTION occurred", '', '', 'No patients have been returned from Pattern');
@@ -63,6 +65,34 @@ class DataImport
 
     }
 
+    /**
+     * @param Patient $patient
+     */
+    public function postProcessUpload()
+    {
+        $measurements = $this->getPostProcessedFiles();
+        if(!empty($measurements)){
+            foreach($measurements as $index => $measurement){
+                $media = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
+                try {
+                    $media->uploadImage(
+                        $measurement['record_id'], //record ID field
+                        $measurement['prefix'] . 'image_file',
+                        $measurement['event_name'],
+                        $this->getClient()->getEm()->getProjectSetting('api-token')
+                    );
+                    $this->getClient()->getEm()->emLog("Image for  :" . $measurement['record_id'] . " was imported successfully");
+                } catch (\Exception $e) {
+                    $this->getClient()->getEm()->emError($e->getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * @param Patient $patient
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function createTaskRecord(Patient $patient)
     {
         global $Proj;
@@ -79,12 +109,15 @@ class DataImport
                         $question_id = $measurement['surveyQuestionId'];
                         $value = is_array($measurement['json']) ? json_encode($measurement['json']) : $this->castAsString($measurement['json']);
                         $full_name = strtolower(str_replace(' ', '_', ($prefix . $question_id))); //Replace all spaces with underscores for REDCAP, lowercase
-                        if($full_name == 'rt1_')
-                            $a = 1;
+
                         if(!isset($question_id)) { // This measurement is a Journal entry type
-                            if(isset($measurement['media']['href'])) //Photo
-                                $form_data[$prefix . 'journal_href'] = $measurement['media']['href']; //Save the href for later.
-                            elseif(isset($measurement['text']))
+                            if(isset($measurement['media']['href'])) { //Photo
+//                                $form_data[$prefix . 'journal_href'] = $measurement['media']['href']; //Save the href for later.
+                                $measurement['record_id'] = $patient->getPatientJson()['user']['uuid'];
+                                $measurement['event_name'] = $map['event_name'];
+                                $measurement['prefix'] = $map['prefix'];
+                                $this->setPostProcessedFiles($measurement);
+                            }elseif(isset($measurement['text']))
                                 $form_data[$prefix . 'submission_text'] = $measurement['text']; //Save the href for later.
                             continue;
                         }
@@ -333,5 +366,27 @@ class DataImport
     {
         $this->ignore_list = $ignore_list;
     }
+
+    /**
+     * @return array
+     */
+    public function getPostProcessedFiles()
+    {
+        return $this->post_processed_files;
+    }
+
+    /**
+     * @param array $post_processed_files
+     */
+    public function setPostProcessedFiles($post_processed_files)
+    {
+        $this->post_processed_files[] = $post_processed_files;
+//        if(empty($this->post_processed_files))
+//            $this->post_processed_files = $post_processed_files;
+//        else
+//            $this->post_processed_files[] = $post_processed_files;
+    }
+
+
 
 }
