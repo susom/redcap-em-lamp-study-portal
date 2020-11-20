@@ -77,6 +77,23 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    /**
+     * @param $pid
+     * @param $link
+     * @return $link sidebar link
+     */
+    public function redcap_module_link_check_display($pid, $link){
+        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Image Adjudication Client")
+            return $link;
+
+        if($this->getProjectSetting("workflow") == "lazy_import" && $link['name'] == "Import Test page")
+            return $link;
+    }
+
+    /**
+     * @param $cron
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function cronImageScanner($cron)
     {
         $projects = $this->framework->getProjectsWithModuleEnabled();
