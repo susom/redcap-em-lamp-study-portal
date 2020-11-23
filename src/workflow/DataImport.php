@@ -81,7 +81,7 @@ class DataImport
                         $measurement['event_name'],
                         $this->getClient()->getEm()->getProjectSetting('api-token')
                     );
-                    $this->getClient()->getEm()->emLog("Image for  :" . $measurement['record_id'] . " was imported successfully");
+                    $this->getClient()->getEm()->emLog("Image " . $measurement['prefix'] . 'image_file'." for:  " . $measurement['record_id'] . " was imported successfully");
                 } catch (\Exception $e) {
                     $this->getClient()->getEm()->emError($e->getMessage());
                 }
@@ -105,20 +105,22 @@ class DataImport
                     $form_data = [];
                     $missing_fields = [];
                     $prefix = $map['prefix'];
+
                     foreach ($task['measurements'] as $measurement) {
                         $question_id = $measurement['surveyQuestionId'];
                         $value = is_array($measurement['json']) ? json_encode($measurement['json']) : $this->castAsString($measurement['json']);
                         $full_name = strtolower(str_replace(' ', '_', ($prefix . $question_id))); //Replace all spaces with underscores for REDCAP, lowercase
 
-                        if(!isset($question_id)) { // This measurement is a Journal entry type
-                            if(isset($measurement['media']['href'])) { //Photo
+                        if (!isset($question_id)) { // This measurement is a Journal entry type
+                            if (isset($measurement['media']['href'])) { //Photo
 //                                $form_data[$prefix . 'journal_href'] = $measurement['media']['href']; //Save the href for later.
                                 $measurement['record_id'] = $patient->getPatientJson()['user']['uuid'];
                                 $measurement['event_name'] = $map['event_name'];
                                 $measurement['prefix'] = $map['prefix'];
                                 $this->setPostProcessedFiles($measurement);
-                            }elseif(isset($measurement['text']))
-                                $form_data[$prefix . 'submission_text'] = $measurement['text']; //Save the href for later.
+                            } elseif (isset($measurement['text'])) {
+                                $form_data[$prefix . 'submission_text'] = $measurement['text']; //Text response
+                            }
                             continue;
                         }
 
@@ -148,7 +150,8 @@ class DataImport
                 }
             }
         }
-        if(! empty($data)) {
+
+        if (!empty($data)) {
             $payload = [];
             foreach($data as $event_name => $fields){
                 $payload[] = array_merge($fields, [
