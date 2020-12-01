@@ -7,8 +7,8 @@ namespace Stanford\LampStudyPortal;
  */
 $startTS = microtime(true);
 $type = $module->getProjectSetting("workflow");
-if($type == "image_adjudication"){
+if ($type == "lazy_import") {
     $module->initialize();
-    $module->emDebug("Workflow: " . $type . " Duration of run: " . microtime(true) - $startTS );
+    $module->emLog("Workflow: " . $type . " Duration of run: " . microtime(true) - $startTS);
 }
 

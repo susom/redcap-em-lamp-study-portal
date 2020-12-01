@@ -37,7 +37,7 @@ class ImageAdjudication
             $this->processPatients();
         }
         // this to tell other classes we need to track data.
-        $this->getClient()->setSaveToREDCap(true);
+//        $this->getClient()->setSaveToREDCap(true);
     }
 
 
@@ -121,17 +121,17 @@ class ImageAdjudication
      * @param $type
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function updateTask($user_uuid, $task_uuid, $results, $confidence, $notes = '')
+    public function updateTask($user_uuid, $task_uuid, $results, $confidence, $readable)
     {
         try {
-            if (isset($user_uuid) && isset($task_uuid) && isset($results) && isset($confidence)) {
+            if (isset($user_uuid) && isset($task_uuid) && isset($results) && isset($confidence) && isset($readable)) {
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
                 $this->setProviderSurvey($record_data->provider_survey_uuid);
                 //if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
                 if (empty($record_data->adjudication_date)) { //If the record hasn't already been adjudicated
-                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'notes' => $notes, 'adj_conf'=> $confidence));
+                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'readable' => $readable, 'adj_conf'=> $confidence));
 
                     $options = [
                         'headers' => [
@@ -148,29 +148,33 @@ class ImageAdjudication
                     );
 
                     if ($response) { //update record upon correct response from pattern
-                        $data['task_uuid'] = $task_uuid;
-                        $data['status'] = 'completed';
-                        $data['coordinator_response'] = $results;
-                        $data['coordinator_user_id'] = USERID;
-                        $data['notes'] = $notes;
-                        $data['full_json'] = json_encode($response);
-                        $data['adjudication_date'] = $update_json->finishTime;
-                        $data['adj_conf'] = $confidence;
-                        $save = \REDCap::saveData(
-                            $this->getClient()->getEm()->getProjectId(),
-                            'json',
-                            json_encode(array($data))
-                        );
+                        if(!strpos($response, 'error')) {
+                            $data['task_uuid'] = $task_uuid;
+                            $data['status'] = 'completed';
+                            $data['coordinator_response'] = $results;
+                            $data['coordinator_user_id'] = USERID;
+                            $data['readable'] = $readable;
+                            $data['full_json'] = json_encode($response);
+                            $data['adjudication_date'] = $update_json->finishTime;
+                            $data['adj_conf'] = $confidence;
+                            $save = \REDCap::saveData(
+                                $this->getClient()->getEm()->getProjectId(),
+                                'json',
+                                json_encode(array($data))
+                            );
 
-                        if (!empty($save['errors'])) {
-                            if (is_array($save['errors']))
-                                $this->getClient()->getEm()->emError(implode(",", $save['errors']));
-                            else
-                                $this->getClient()->getEm()->emError($save['errors']);
-                            http_response_code(400); //return bad request
+                            if (!empty($save['errors'])) {
+                                if (is_array($save['errors']))
+                                    $this->getClient()->getEm()->emError(implode(",", $save['errors']));
+                                else
+                                    $this->getClient()->getEm()->emError($save['errors']);
+                                http_response_code(400); //return bad request
+                            }
+
+                            http_response_code(200);//return 200 on success
+                        } else {
+                            $this->getClient()->getEm()->emError($response);
                         }
-
-                        http_response_code(200);//return 200 on success
 
                     } else {
                         $this->getClient()->getEm()->emError("Record $task_uuid recieved no response from pattern PUT");
@@ -222,6 +226,8 @@ class ImageAdjudication
             } else {
                 if($element['identifier'] === "adj_conf")
                     $measurement->json = (int)$data[$element['identifier']];
+                elseif($element['identifier'] === "readable")
+                    $measurement->json = $data[$element['identifier']] == "true" ? true : false;
                 else
                     $measurement->json = $data[$element['identifier']];
             }

@@ -4,20 +4,23 @@ LAMP.bindEvents = () => {
     $('.submit').on("click", function(){
         let colRef = $(this).parents('.col-lg-6');
         let cardBody = $(this).parents('.card-body');
-        let description = $(cardBody).find('.form-control').val();
+        let readable;
         let confidence = $(cardBody).find('.form-control-range').val();
         let result;
         for(let i of $(cardBody).find('.form-check-input')){
-            if(i.checked)
-                result = $(i).val();
-        }
+            if(i.checked){
+                $(i).attr('name') === 'results' ? result = $(i).val() : readable = $(i).val();
+            }
 
-        if(result){
-            LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), description, confidence, result);
+        }
+        if(result && readable){
+            LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), readable, confidence, result);
         } else {
-            $(colRef).find('.result-box').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
+            if(!result)
+                $(colRef).find('.result-box').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
+            if(!readable)
+                $(colRef).find('.readable-box').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
         }
-
     });
 
     // Set default value #
@@ -30,11 +33,11 @@ LAMP.bindEvents = () => {
 
 }
 
-LAMP.put = (colRef, user_uuid, taskUUID, description, confidence, type) => {
+LAMP.put = (colRef, user_uuid, taskUUID, readable, confidence, type) => {
     let obj = {
         'user_uuid': user_uuid,
         'task_uuid': taskUUID,
-        'notes': description,
+        'readable': readable,
         'confidence': confidence,
         'results': type
     };

@@ -4,16 +4,17 @@ require_once APP_PATH_DOCROOT . 'ProjectGeneral/header.php';
 /**
  * @var \Stanford\LampStudyPortal\LampStudyPortal $module
  */
+//$module->initialize();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $module->processPatients = false;
+    $module->processPatients = false; //necessary to skip unnecessary patient pulling on PUT
     $module->initialize();
     $module->getWorkflow()->updateTask(
         filter_var($_POST['user_uuid'], FILTER_SANITIZE_STRING),
         filter_var($_POST['task_uuid'], FILTER_SANITIZE_STRING),
         filter_var($_POST['results'], FILTER_SANITIZE_STRING),
         filter_var($_POST['confidence'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['notes'], FILTER_SANITIZE_STRING)
+        filter_var($_POST['readable'], FILTER_SANITIZE_STRING)
     );
 }
 
@@ -32,10 +33,8 @@ if(!empty($image_payload)){
 <br>
 <div class='row' style="margin-bottom: 20px;">
     <?php
-    foreach ($image_payload
-
-    as $index => $image){
-    if ($index % 2 == 0 && $index != 0) { //new row entry
+    foreach ($image_payload as $index => $image){
+        if ($index % 2 == 0 && $index != 0) { //new row entry
     ?>
 </div>
 <div class='row' style="margin-bottom: 20px;">
@@ -50,34 +49,38 @@ if(!empty($image_payload)){
                 data-user-uuid='<?php echo $image['user_uuid']; ?>'
             >
                 <form>
-                    <div class="form-group">
-                        <label for="textarea-<?php echo $index; ?>" >Result Description (Optional)</label>
-                        <textarea
-                            id="textarea-<?php echo $index; ?>"
-                            class="form-control"
-                            rows="3"
-                        ></textarea>
+                    <div class="form-group readable-box">
+                        <label>Results readable</label>
+                        <div class="form-check">
+                            <input class="form-check-input" name="readable" type="radio" value="true">
+                            <label class="form-check-label" for="defaultCheck1">Yes</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" name="readable" type="radio" value="false" >
+                            <label class="form-check-label" for="defaultCheck2">No</label>
+                        </div>
                     </div>
+                    <hr>
+                    <label>Image Result</label>
                     <div class="form-group result-box">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="results"  value="1">
-                            <label class="form-check-label">
-                                Positive
-                            </label>
+                            <label class="form-check-label">Not detected</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="results"  value="2">
-                            <label class="form-check-label">
-                                Negative
-                            </label>
+                            <label class="form-check-label">Detected</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="results" value="3">
-                            <label class="form-check-label">
-                                Unclear
-                            </label>
+                            <label class="form-check-label">Unclear</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="results" value="4">
+                            <label class="form-check-label">No liquid visible</label>
                         </div>
                     </div>
+                    <hr>
                     <div class="form-group">
                         <label for="range-<?php echo $index; ?>" >Confidence</label>
                         <div class="d-flex justify-content-center ">
@@ -106,34 +109,38 @@ if(!empty($image_payload)){
                     data-user-uuid='<?php echo $image['user_uuid']; ?>'
                 >
                     <form>
-                        <div class="form-group">
-                            <label for="textarea-<?php echo $index; ?>" >Result Description (Optional)</label>
-                            <textarea
-                                id="textarea-<?php echo $index; ?>"
-                                class="form-control"
-                                rows="3"
-                            ></textarea>
+                        <div class="form-group readable-box">
+                            <label>Results readable</label>
+                            <div class="form-check">
+                                <input class="form-check-input" name="readable" type="radio" value="true">
+                                <label class="form-check-label" for="defaultCheck1">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" name="readable" type="radio" value="false" >
+                                <label class="form-check-label" for="defaultCheck2">No</label>
+                            </div>
                         </div>
+                        <hr>
+                        <label>Image Result</label>
                         <div class="form-group result-box">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="results"  value="1">
-                                <label class="form-check-label">
-                                    Positive
-                                </label>
+                                <label class="form-check-label">Not detected</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="results"  value="2">
-                                <label class="form-check-label">
-                                    Negative
-                                </label>
+                                <label class="form-check-label">Detected</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="results" value="3">
-                                <label class="form-check-label">
-                                    Unclear
-                                </label>
+                                <label class="form-check-label">Unclear</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="results" value="4">
+                                <label class="form-check-label">No liquid visible</label>
                             </div>
                         </div>
+                        <hr>
                         <div class="form-group">
                             <label for="range-<?php echo $index; ?>" >Confidence</label>
                             <div class="d-flex justify-content-center ">

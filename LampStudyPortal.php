@@ -83,10 +83,13 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
      * @return $link sidebar link
      */
     public function redcap_module_link_check_display($pid, $link){
-        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Image Adjudication Client")
+        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Image adjudication client")
             return $link;
 
-        if($this->getProjectSetting("workflow") == "lazy_import" && $link['name'] == "Import Test page")
+        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Trigger image scan")
+            return $link;
+
+        if($this->getProjectSetting("workflow") == "lazy_import" && $link['name'] == "Trigger data scan")
             return $link;
     }
 
@@ -98,6 +101,22 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         $projects = $this->framework->getProjectsWithModuleEnabled();
         $url = $this->getUrl('src/workflow/cronImageScanner.php', true); //has to be page
+        foreach($projects as $index => $project_id){
+            $thisUrl = $url . "&pid=$project_id"; //project specific
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+//            $this->emLog($response->getBody());
+        }
+    }
+
+    /**
+     * @param $cron
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function cronDataImport($cron)
+    {
+        $projects = $this->framework->getProjectsWithModuleEnabled();
+        $url = $this->getUrl('src/workflow/dataImportScanner.php', true); //has to be page
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
