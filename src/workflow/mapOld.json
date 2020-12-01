@@ -1,0 +1,103 @@
+{
+    "sv-pEOYf-h1Wic_NgAGTaeXDg": {
+        "prefix": "s_",
+        "event_name": "baseline_arm_1",
+        "description": "Screening"
+    },
+    "sv-Ei6fjToQipXdA8r2bcllwQ": {
+        "prefix": "rt1_",
+        "event_name": "test_1_arm_1",
+        "description": "Test 1 Report Results & Symptom check"
+    },
+    "sv-86cacd90bc9d70d6": {
+        "prefix": "rt1_",
+        "event_name": "test_2_arm_1",
+        "description": "Test 2 Report Results & Symptom check"
+    },
+    "sv-87e727695e434edc": {
+        "prefix": "rt1_",
+        "event_name": "test_3_arm_1",
+        "description": "Test 3 Report Results & Symptom check"
+    },
+    "sv-48daaf911b3fd19561b1": {
+        "prefix": "p1_",
+        "event_name": "test_1_arm_1",
+        "description": "Provider - Review Test 1 Results (Correct)"
+    },
+    "sv-cSMRSDza-MZa_XccVlRxnw": {
+        "prefix": "p1_",
+        "event_name": "test_2_arm_1",
+        "description": "Provider - Review Test 2 Results"
+    },
+    "sv-4bfb8343b0a275f4d623": {
+        "prefix": "p1_",
+        "event_name": "test_3_arm_1",
+        "description": "Provider - Review Test 3 Results"
+    },
+    "sv-bd7b23b48491f118": {
+        "prefix" : "t1_",
+        "event_name": "test_1_arm_1",
+        "description": "Perform COVID Test 1"
+    },
+    "sv-yad0BBiDVDdOFrRidO4V9A": {
+        "prefix" : "t1_",
+        "event_name": "test_2_arm_1",
+        "description": "Perform COVID Test 2"
+    },
+    "sv-89b3-80fc2f2663b4": {
+        "prefix" : "t1_",
+        "event_name": "test_3_arm_1",
+        "description": "Perform COVID Test 3"
+    },
+    "sv-AKcRYH0vWr8O6gkD6IFvZw": {
+        "prefix" : "u_",
+        "event_name": "baseline_arm_1",
+        "description": "Usability"
+    },
+    "sv-dia09LSdqN1LBY4QWT89sQ": {
+        "prefix" : "b_",
+        "event_name": "baseline_arm_1",
+        "description": "Before you begin"
+    },
+    "sv-rrTfFa-45tQPe0-9zMUIrw": {
+        "prefix" : "c_",
+        "event_name": "baseline_arm_1",
+        "description": "Consent (Researcher)"
+    },
+    "act-x3EJ8tjdrORP6aRah_-g7w": {
+        "prefix": "c_",
+        "event_name": "baseline_arm_1",
+        "description": "Review and Sign Informed Consent"
+    },
+    "act-341dsXzhJeCN_6aBgmac-Q": {
+        "prefix": "rs_",
+        "event_name": "baseline_arm_1",
+        "description": "HIPAA Authorization Consent"
+    },
+    "sv-Nel2D9xL3s2Dlr49Zl24SL3fk3Z21wk": {
+        "prefix": "gs_",
+        "event_name": "baseline_arm_1",
+        "description": "Getting Started (3 tests)"
+    },
+    "sv-J2QgcczSdmY79lK2dZYQ2g": {
+        "prefix": "gs_",
+        "event_name": "baseline_arm_1",
+        "description": "Getting Started (2 tests)"
+    },
+    "sv-NLz7G2lC1PZm4L2DzDJZl3q1": {
+        "prefix": "gs_",
+        "event_name": "baseline_arm_1",
+        "description": "Getting Started (3 tests) Spanish"
+    },
+    "sv-H3KL79zl21Dlk5Sqvo3SqlDq1": {
+        "prefix": "gs_",
+        "event_name": "baseline_arm_1",
+        "description": "Getting Started Spanish"
+    },
+    "sv-O9FGvoenGRbZUElaQT2cyw": {
+        "prefix": "h_",
+        "event_name": "baseline_arm_1",
+        "description": "Help"
+    },
+
+}

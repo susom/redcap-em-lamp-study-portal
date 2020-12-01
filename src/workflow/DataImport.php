@@ -101,6 +101,7 @@ class DataImport
         foreach($all_tasks as $index => $task) {
             if(!empty($task['measurements'])){ // The user has some survey answers
                 $map = $this->getTaskMap($task);
+
                 if(!empty($map)) { //
                     $form_data = [];
                     $missing_fields = [];
@@ -113,7 +114,6 @@ class DataImport
 
                         if (!isset($question_id)) { // This measurement is a Journal entry type
                             if (isset($measurement['media']['href'])) { //Photo
-//                                $form_data[$prefix . 'journal_href'] = $measurement['media']['href']; //Save the href for later.
                                 $measurement['record_id'] = $patient->getPatientJson()['user']['uuid'];
                                 $measurement['event_name'] = $map['event_name'];
                                 $measurement['prefix'] = $map['prefix'];
@@ -121,7 +121,7 @@ class DataImport
                             } elseif (isset($measurement['text'])) {
                                 $form_data[$prefix . 'submission_text'] = $measurement['text']; //Text response
                             }
-                            continue;
+                                continue;
                         }
 
                         if (!isset($Proj->metadata[$full_name]))
@@ -137,8 +137,8 @@ class DataImport
                            $form_data[$prefix . 'finish_time'] = $task['finishTime'];
                     }
 
-                    if (!empty($missing_fields))
-                        $this->getClient()->getEm()->emError(implode(" ", $missing_fields));
+                    if (!empty($missing_fields)) //Explode missing fields for mapping
+                        $this->getClient()->getEm()->emError('Missing fields: ' . implode(" ", $missing_fields));
 
                     if(!empty($form_data)) {
                         if(empty($data[$map['event_name']])){
@@ -160,7 +160,7 @@ class DataImport
                 ]);
             }
 
-            $results =  \REDCap::saveData('json', json_encode($payload));
+            $response =  \REDCap::saveData('json', json_encode($payload));
             if (!empty($response['errors'])) {
                 if (is_array($response['errors'])) {
                     throw new \Exception(implode(",", $response['errors']));
@@ -206,14 +206,13 @@ class DataImport
             if(isset($map[$task['survey']['uuid']])) { //Else return the mapping obj
                 return $map[$task['survey']['uuid']];
             } else {
-
                 if (isset($task['survey']['uuid'])) { //some elements have a survey UUID
-                    $this->getClient()->getEm()->emLog('Unmapped task :' . $task['survey']['uuid'] . ' Description ' . $task['survey']['name']);
+                    $this->getClient()->getEm()->emLog('Unmapped task: ' . $task['survey']['uuid'] . ' Description ' . $task['survey']['name']);
                     return [];
                 }
             }
         }
-        $this->getClient()->getEm()->emLog('Unmapped task :' . $task['activityUuid'] . ' Description ' . $task['description']);
+        $this->getClient()->getEm()->emLog('Unmapped task: ' . $task['activityUuid'] . ' Description ' . $task['description']);
         return [];
     }
 
