@@ -118,14 +118,14 @@
     "crons": [
         {
             "cron_name": "lamp_image_scanner",
-            "cron_description": ",<b>This cron will hit pattern's API and pull all valid images into redcap</b> ",
+            "cron_description": "This cron will hit pattern's API and pull all valid images into redcap",
             "method": "cronImageScanner",
             "cron_frequency": "360",
             "cron_max_run_time": "300"
         },
         {
             "cron_name": "lamp_data_import",
-            "cron_description": ",<b>This cron will hit pattern's API and pull all valid patient information into redcap</b> ",
+            "cron_description": "This cron will hit pattern's API and pull all valid patient information into redcap",
             "method": "cronDataImport",
             "cron_frequency": "1800",
             "cron_max_run_time": "1800"
