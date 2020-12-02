@@ -4,6 +4,8 @@
 namespace Stanford\LampStudyPortal;
 
 
+use Sabre\VObject\Property\VCard\DateTime;
+
 class DataImport
 {
     /** @var Client $client */
@@ -15,19 +17,22 @@ class DataImport
     /** @var array $record_cache */
     private $record_cache;
 
-    /** @var String $ts_start*/
+    /** @var array $last_update_cache */
+    private $last_update_cache;
+
+    /** @var String $ts_start */
     private $ts_start;
 
     /** @var -> Redcap conversion map */
-     private $map;
+    private $map;
 
     /** @var -> List of activities to ignore */
-     private $ignore_list;
+    private $ignore_list;
 
     /**
      * @var array $post_processed_files
      */
-     private $post_processed_files;
+    private $post_processed_files;
 
     /**
      * DataImport constructor.
@@ -42,7 +47,6 @@ class DataImport
         $this->processPatients();
     }
 
-
     private function processPatients()
     {
         $this->getClient()->getEm()->emLog('Starting query for patients');
@@ -50,11 +54,13 @@ class DataImport
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
                 $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
-                if(!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
+                if (!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
                     $this->createPatientRecord($patientObj, $patientObj->getConstants());
-                    $this->getClient()->getEm()->emLog('Patient UUID ' .  $patient['user']['uuid'] . ' Created');
+                    $this->getClient()->getEm()->emLog('Patient UUID ' . $patient['user']['uuid'] . ' Created');
                 }
-                $this->createTaskRecord($patientObj);
+                $last_task_updated_time = $this->checkLastUpdateTime($patient['user']['uuid']);
+
+                $this->createTaskRecord($patientObj, $last_task_updated_time);
             }
             $this->postProcessUpload();
         } else {
@@ -65,14 +71,15 @@ class DataImport
 
     }
 
+
     /**
      * @param Patient $patient
      */
     public function postProcessUpload()
     {
         $measurements = $this->getPostProcessedFiles();
-        if(!empty($measurements)){
-            foreach($measurements as $index => $measurement){
+        if (!empty($measurements)) {
+            foreach ($measurements as $index => $measurement) {
                 $media = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object
                 try {
                     $media->uploadImage(
@@ -81,7 +88,7 @@ class DataImport
                         $measurement['event_name'],
                         $this->getClient()->getEm()->getProjectSetting('api-token')
                     );
-                    $this->getClient()->getEm()->emLog("Image " . $measurement['prefix'] . 'image_file'." for:  " . $measurement['record_id'] . " was imported successfully");
+                    $this->getClient()->getEm()->emLog("Image " . $measurement['prefix'] . 'image_file' . " for:  " . $measurement['record_id'] . " was imported successfully");
                 } catch (\Exception $e) {
                     $this->getClient()->getEm()->emError($e->getMessage());
                 }
@@ -89,16 +96,50 @@ class DataImport
         }
     }
 
+    public function checkLastUpdateTime($record_id)
+    {
+        $records = $this->getLastUpdateCache();
+        if (!isset($records)) {
+//            json_decode(\REDCap::getData('json',null,null,null,null,false,false,false,'[status] != "completed"'));
+            $param = array(
+                'return_format' => 'array',
+                'fields' => 'last_task_update_time', //last time any tasks have been updated
+                'events' => 'baseline_arm_1'
+            );
+
+            $records = \REDCap::getData($param);
+            $this->setLastUpdateCache($records);
+        }
+        if(isset($records[$record_id])){
+            $event_id = array_keys($records[$record_id])[0];
+            return $records[$record_id][$event_id]['last_task_update_time'];
+        } else {
+            return '';
+        }
+
+    }
+
     /**
      * @param Patient $patient
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function createTaskRecord(Patient $patient)
+    public function createTaskRecord(Patient $patient, $last_task_updated_time)
     {
         global $Proj;
         $all_tasks = $patient->getTasks();
         $data = [];
+
         foreach($all_tasks as $index => $task) {
+
+            if(isset($task['finishTime'])) { //check if we have to update records
+                $ft = strtotime($task['finishTime']);
+                $lu = strtotime($last_task_updated_time);
+
+                if(!empty($lu) && $ft < $lu)
+                    continue; //skip over all measurements in this task, do not update.
+            }
+
+
             if(!empty($task['measurements'])){ // The user has some survey answers
                 $map = $this->getTaskMap($task);
 
@@ -120,15 +161,15 @@ class DataImport
                                 $this->setPostProcessedFiles($measurement);
                             } elseif (isset($measurement['text'])) {
                                 $form_data[$prefix . 'submission_text'] = $measurement['text']; //Text response
-                            }
-                                continue;
+                            } //always skip others, as the actual surveys dont have to be stored per patient (signatureCompleted)
+                                continue; //skip field push, images can be handled after
                         }
 
                         if (!isset($Proj->metadata[$full_name]))
                             array_push($missing_fields, $full_name);
                         else
                             $form_data[$full_name] = $value; //Set data, redcap can only support lowercase
-                    }
+                    } //End of measurement iteration
 
                     if (!empty($task['finishTime'])) {
                        if(! isset($Proj->metadata[$prefix . 'finish_time']))
@@ -153,11 +194,30 @@ class DataImport
 
         if (!empty($data)) {
             $payload = [];
+            $update_time_needed = 1;
+
             foreach($data as $event_name => $fields){
-                $payload[] = array_merge($fields, [
+                if($event_name === 'baseline_arm_1'){
+                    $update_time_needed = 0; //If we make updates to baseline, we include last task update time
+                    $payload[] = array_merge($fields, [
+                        "record_id" => $patient->getPatientJson()['user']['uuid'],
+                        "redcap_event_name" => $event_name,
+                        "last_task_update_time" => gmdate("Y-m-d\TH:i:s\Z")
+                    ]);
+                } else {
+                    $payload[] = array_merge($fields, [
+                        "record_id" => $patient->getPatientJson()['user']['uuid'],
+                        "redcap_event_name" => $event_name,
+                    ]);
+                }
+            }
+
+            if($update_time_needed) { //We did not encounter baseline update in payload, create a new element to update
+                $payload[] = [
                     "record_id" => $patient->getPatientJson()['user']['uuid'],
-                    "redcap_event_name" => $event_name
-                ]);
+                    "redcap_event_name" => "baseline_arm_1",
+                    "last_task_update_time" => gmdate("Y-m-d\TH:i:s\Z")
+                ];
             }
 
             $response =  \REDCap::saveData('json', json_encode($payload));
@@ -172,6 +232,7 @@ class DataImport
 
     }
 
+
     /**
      * @param $value
      * @return string
@@ -185,7 +246,6 @@ class DataImport
 
         return $converted;
     }
-
 
     /**
      * @param $task
@@ -234,7 +294,7 @@ class DataImport
                 }
             }
             $data['redcap_event_name'] = 'baseline_arm_1'; //necessary
-            $result =  \REDCap::saveData('json', json_encode(array($data)));
+            $response =  \REDCap::saveData('json', json_encode(array($data)));
             if (!empty($response['errors'])) {
                 if (is_array($response['errors']))
                     $this->getClient()->getEm()->emError(implode(",", $response['errors']));
@@ -245,6 +305,7 @@ class DataImport
             $this->getClient()->getEm()->emError('Either patient or attribute map is null: ', '', $patient, $attributes);
         }
     }
+
 
     /**
      * @param $record_id Patient UUID
@@ -264,6 +325,22 @@ class DataImport
         }
 
         return isset($records[$record_id]);
+    }
+
+    /**
+     * @return array
+     */
+    public function getLastUpdateCache()
+    {
+        return $this->last_update_cache;
+    }
+
+    /**
+     * @param array $last_update_cache
+     */
+    public function setLastUpdateCache($last_update_cache)
+    {
+        $this->last_update_cache = $last_update_cache;
     }
 
     /**
