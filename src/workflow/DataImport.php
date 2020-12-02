@@ -99,8 +99,7 @@ class DataImport
     public function checkLastUpdateTime($record_id)
     {
         $records = $this->getLastUpdateCache();
-        if (!isset($records)) {
-//            json_decode(\REDCap::getData('json',null,null,null,null,false,false,false,'[status] != "completed"'));
+        if (!isset($records)) { //first patient calls this getData call only
             $param = array(
                 'return_format' => 'array',
                 'fields' => 'last_task_update_time', //last time any tasks have been updated
@@ -110,10 +109,10 @@ class DataImport
             $records = \REDCap::getData($param);
             $this->setLastUpdateCache($records);
         }
-        if(isset($records[$record_id])){
+        if(isset($records[$record_id])){ //If we are updating a patient's records
             $event_id = array_keys($records[$record_id])[0];
             return $records[$record_id][$event_id]['last_task_update_time'];
-        } else {
+        } else { //Otherwise this is a new patient, so return nothing
             return '';
         }
 
@@ -176,6 +175,13 @@ class DataImport
                            array_push($missing_fields, $prefix . 'finish_time');
                        else
                            $form_data[$prefix . 'finish_time'] = $task['finishTime'];
+                    }
+
+                    if (!empty($task['startTime'])) {
+                        if(! isset($Proj->metadata[$prefix . 'start_time']))
+                            array_push($missing_fields, $prefix . 'start_time');
+                        else
+                            $form_data[$prefix . 'start_time'] = $task['startTime'];
                     }
 
                     if (!empty($missing_fields)) //Explode missing fields for mapping
