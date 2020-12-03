@@ -141,6 +141,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     {
         global $Proj;
             try {
+
                 //Pull only non completed images
                 $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
                 $payload = array();
@@ -151,8 +152,15 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                         'user_uuid' => $record->patient_uuid,
                         'photo_binary' => $this->getDocumentName($doc_id)
                     );
+
+                    $this->emLog("Pushing to frontend: task_uuid" .
+                        $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
+                        'photoBinary: ' . (!empty($this->getDocumentName($doc_id)) ? 'Yes' : 'No')
+                    );
+
                     array_push($payload, $pic_info);
                 }
+
                 return $payload;
 
             } catch (\Exception $e) {
