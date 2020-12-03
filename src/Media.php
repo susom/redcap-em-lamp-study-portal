@@ -114,7 +114,9 @@ class Media
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_VERBOSE, 0);
         $result = curl_exec($ch);
+        $this->getClient()->getEm()->emDebug($result);
         $info = curl_getinfo($ch);
+        $this->getClient()->getEm()->emDebug($info);
         curl_close($ch);
         if ($info['http_code'] != 200) {
             throw new \Exception(
