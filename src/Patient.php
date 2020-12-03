@@ -116,7 +116,7 @@ class Patient
         if (!empty($provider_tasks)) { //Skip all downloads if no provider task, no adjudication needed
             $journal_entry_photos = $this->getJournalEntryPhotos();
             foreach($provider_tasks as $ind => $task) { //Iterate through provider tasks (max 3)
-                if($task['status'] == 'inProgress') { // commented out for testing
+                if($task['status'] == 'inProgress') { // if the provider task has NOT been completed yet we want to save journalEntryPhoto
                     foreach($journal_entry_photos[$ind]['measurements'] as $mind => $measurement) { //iterate over all measurements for a corresponding task containing a photo, we have the match via $ind
                         if ($measurement['type'] == 'journalEntryPhoto') {
                             $journal_entry_photos[$ind]['media'] = new Media($this->getClient(), $measurement['media']['title'], $measurement['media']['href']); //create new key to save media object

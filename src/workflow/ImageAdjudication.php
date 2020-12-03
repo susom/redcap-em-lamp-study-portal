@@ -60,9 +60,7 @@ class ImageAdjudication
                     foreach($journal_entry_photos as $index => $photo) {
                         if(!isset($photo['media'])){ //Will only be set if corresponding provider task exists
                             $this->getClient()->getEm()->emLog(
-                                'Media for photo not set',
-                                'task uuid: ' . $photo['uuid'],
-                                'patient uuid: '. $patient['user']['uuid']
+                                'Provider Task for corresponding journalEntry ' . $photo['uuid'] . ' , patient '. $patient['user']['uuid'] . ' Already adjudicated, skipping '
                             );
                             continue;
                         }
