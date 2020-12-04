@@ -155,7 +155,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
                     $this->emLog("Pushing to frontend: task_uuid" .
                         $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
-                        'photoBinary: ' . (!empty($this->getDocumentName($doc_id)) ? 'Yes' : 'No')
+                        'photoBinary: ' . strlen($pic_info['photo_binary'] ) .' len characters'
                     );
 
                     array_push($payload, $pic_info);
@@ -178,7 +178,13 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         $q = db_query($sql);
         if (db_num_rows($q) == 1) {
             while ($row = db_fetch_assoc($q)) {
-                return $this->generateDataURI(file_get_contents("/var/www/html/edocs/" . $row['stored_name']));
+                $binary = file_get_contents("/var/www/html/edocs/" . $row['stored_name']);
+                if(!empty($binary)) {
+                    return $this->generateDataURI($binary);
+                } else {
+                    $this->emError('Binary image data not found for doc id: ' . $doc_id . ' Full edocs path : /var/www/html/edocs/' . $row['stored_name']);
+                    return '';
+                }
             }
         }
     }
