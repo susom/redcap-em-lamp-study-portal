@@ -99,6 +99,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function cronImageScanner($cron)
     {
+        $this->emDebug("Starting " . __METHOD__);
         $projects = $this->framework->getProjectsWithModuleEnabled();
         $url = $this->getUrl('src/workflow/cronImageScanner.php', true); //has to be page
         foreach($projects as $index => $project_id){
@@ -115,6 +116,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function cronDataImport($cron)
     {
+        $this->emDebug("Starting " . __METHOD__);
         $projects = $this->framework->getProjectsWithModuleEnabled();
         $url = $this->getUrl('src/workflow/dataImportScanner.php', true); //has to be page
         foreach($projects as $index => $project_id){
