@@ -23,7 +23,8 @@
     "framework-version": 5,
     "enable-every-page-hooks-on-system-pages": false,
     "no-auth-pages": [
-        "src/workflow/cronImageScanner"
+        "src/workflow/cronImageScanner",
+        "src/workflow/dataImportScanner"
     ],
     "project-settings": [
         {
