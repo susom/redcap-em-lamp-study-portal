@@ -37,13 +37,13 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     /** @var ImageAdjudication $workflow */
     private $workflow;
 
+
     public $processPatients = true;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
+    /**
+     * Load project-specific settings
+     */
     public function initialize()
     {
         try {
@@ -63,11 +63,22 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                     ));
 
                 $this->getClient()->checkToken();
-                if ($this->getProjectSetting("workflow") == "image_adjudication") {
-                    $this->setWorkflow(new ImageAdjudication($this->getClient(), $this->processPatients));
-                } elseif($this->getProjectSetting("workflow") == "lazy_import") { //Data import
-                    $this->setWorkflow(new DataImport($this->getClient()));
+
+                // This module supports multiple 'use cases' - based on the workflow
+                $this->workflow = $this->getProjectSetting("workflow");
+                switch ($this->workflow) {
+                    case "image_adjudication":
+                        // Review provider tasks and present UI for image adjudication
+                        $this->setWorkflow(new ImageAdjudication($this->getClient(), $this->processPatients));
+                        break;
+                    case "lazy_import":
+                        // Sync pattern data with REDCAp
+                        $this->setWorkflow(new DataImport($this->getClient()));
+                        break;
+                    default:
+                        $this->emError("Invalid workflow: $workflow");
                 }
+
             }
         // Other code to run when object is instantiated
         } catch (\Exception $e) {
@@ -77,21 +88,25 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+
     /**
      * @param $pid
      * @param $link
      * @return $link sidebar link
      */
     public function redcap_module_link_check_display($pid, $link){
-        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Image adjudication client")
+        $workflow = $this->getProjectSetting("workflow");
+
+        if($workflow == "image_adjudication" && $link["name"] == "Image adjudication client")
             return $link;
 
-        if($this->getProjectSetting("workflow") == "image_adjudication" && $link["name"] == "Trigger image scan")
+        if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
             return $link;
 
-        if($this->getProjectSetting("workflow") == "lazy_import" && $link['name'] == "Trigger data scan")
+        if($workflow == "lazy_import" && $link['name'] == "Trigger data scan")
             return $link;
     }
+
 
     /**
      * @param $cron
@@ -100,15 +115,16 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function cronImageScanner($cron)
     {
         $this->emDebug("Starting " . __METHOD__);
-        $projects = $this->framework->getProjectsWithModuleEnabled();
         $url = $this->getUrl('src/workflow/cronImageScanner.php', true); //has to be page
+
+        $projects = $this->framework->getProjectsWithModuleEnabled();
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
-            $response = $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
-//            $this->emLog($response->getBody());
+            $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
         }
     }
+
 
     /**
      * @param $cron
@@ -117,16 +133,20 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function cronDataImport($cron)
     {
         $this->emDebug("Starting " . __METHOD__);
+        $url = $this->getUrl('src/workflow/cronDataImport.php', true); //has to be page
+
         $projects = $this->framework->getProjectsWithModuleEnabled();
-        $url = $this->getUrl('src/workflow/dataImportScanner.php', true); //has to be page
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
-            $response = $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
-//            $this->emLog($response->getBody());
+            $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
         }
     }
 
+
+    /**
+     * Maintain fresh token for pattern health api
+     */
     public function updateTokenInfo()
     {
         //work around if token is updated make sure to save it.
@@ -136,60 +156,65 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+
     /**
+     * Get all images downloaded to REDCap but that have not been adjudicated by the REDCap UI
      * @return array
      */
     public function fetchImages()
     {
-        global $Proj;
-            try {
+        try {
+            //Pull only non completed images
+            $records = json_decode(\REDCap::getData('json',null,null,null,null,false,false,false,'[status] != "completed"'), true);
+            $payload = array();
+            foreach($records as $index => $record) {
+                $doc_id = $record["image_file"];
 
-                //Pull only non completed images
-                $records = json_decode(\REDCap::getData($Proj->project_id,'json',null,null,null,null,false,false,false,'[status] != "completed"'));
-                $payload = array();
-                foreach($records as $index => $record) {
-                    $doc_id = $record->image_file;
-                    $pic_info = array(
-                        'task_uuid' => $record->task_uuid,
-                        'user_uuid' => $record->patient_uuid,
-                        'photo_binary' => $this->getDocumentName($doc_id)
-                    );
+                $doc_temp_path = \Files::copyEdocToTemp($doc_id, false, true);
+                $binary = file_get_contents($doc_temp_path);
 
-                    $this->emLog("Pushing to frontend: task_uuid" .
-                        $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
-                        'photoBinary: ' . strlen($pic_info['photo_binary'] ) .' len characters'
-                    );
+                $pic_info = array(
+                    'task_uuid' => $record["task_uuid"],
+                    'user_uuid' => $record["patient_uuid"],
+                    'photo_binary' => empty($binary) ? null : $this->generateDataURI($binary)
+                );
 
-                    array_push($payload, $pic_info);
-                }
+                $this->emLog("Pushing to frontend: task_uuid: " .
+                    $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
+                    'photoBinary: ' . strlen($pic_info['photo_binary'] ) .' len characters'
+                );
 
-                return $payload;
-
-            } catch (\Exception $e) {
-                echo 'Caught exception: ', $e->getMessage(), "\n";
-                $this->emError($e->getMessage());
+                array_push($payload, $pic_info);
             }
-    }
 
-    /**
-     * @param $doc_id
-     * @return string
-     */
-    public function getDocumentName($doc_id) {
-        $sql = "select * from redcap_edocs_metadata where doc_id = '$doc_id'";
-        $q = db_query($sql);
-        if (db_num_rows($q) == 1) {
-            while ($row = db_fetch_assoc($q)) {
-                $binary = file_get_contents("/var/www/html/edocs/" . $row['stored_name']);
-                if(!empty($binary)) {
-                    return $this->generateDataURI($binary);
-                } else {
-                    $this->emError('Binary image data not found for doc id: ' . $doc_id . ' Full edocs path : /var/www/html/edocs/' . $row['stored_name']);
-                    return '';
-                }
-            }
+            return $payload;
+
+        } catch (\Exception $e) {
+            echo 'Caught exception: ', $e->getMessage(), "\n";
+            $this->emError($e->getMessage());
         }
     }
+
+
+    // /**
+    //  * @param $doc_id
+    //  * @return string
+    //  */
+    // public function getDocumentName($doc_id) {
+    //     $sql = "select * from redcap_edocs_metadata where doc_id = '$doc_id'";
+    //     $q = db_query($sql);
+    //     if (db_num_rows($q) == 1) {
+    //         while ($row = db_fetch_assoc($q)) {
+    //             $binary = file_get_contents("/var/www/html/edocs/" . $row['stored_name']);
+    //             if(!empty($binary)) {
+    //                 return $this->generateDataURI($binary);
+    //             } else {
+    //                 $this->emError('Binary image data not found for doc id: ' . $doc_id . ' Full edocs path : /var/www/html/edocs/' . $row['stored_name']);
+    //                 return '';
+    //             }
+    //         }
+    //     }
+    // }
 
     /**
      * @param $file_binary
@@ -213,6 +238,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
         return $this->patients;
     }
+
 
     /**
      * @param array $patients
