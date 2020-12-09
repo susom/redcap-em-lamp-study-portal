@@ -172,6 +172,8 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
 
                 $doc_temp_path = \Files::copyEdocToTemp($doc_id, false, true);
                 $binary = file_get_contents($doc_temp_path);
+                unlink($doc_temp_path);
+
 
                 $pic_info = array(
                     'task_uuid' => $record["task_uuid"],
