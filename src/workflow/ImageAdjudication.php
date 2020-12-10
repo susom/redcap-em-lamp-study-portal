@@ -127,7 +127,6 @@ class ImageAdjudication
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
                 $this->setProviderSurvey($record_data->provider_survey_uuid);
-                //if (empty($record_data->adjudication_date) && $record_data->status != "completed") { //If the record hasn't already been adjudicated
                 if (empty($record_data->adjudication_date)) { //If the record hasn't already been adjudicated
                     $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'readable' => $readable, 'adj_conf'=> $confidence));
 
@@ -145,46 +144,41 @@ class ImageAdjudication
                         $options
                     );
 
-                    if ($response) { //update record upon correct response from pattern
-                        if(!strpos($response, 'error')) {
-                            $data['task_uuid'] = $task_uuid;
-                            $data['status'] = 'completed';
-                            $data['coordinator_response'] = $results;
-                            $data['coordinator_user_id'] = USERID;
-                            $data['readable'] = $readable;
-                            $data['full_json'] = json_encode($response);
-                            $data['adjudication_date'] = $update_json->finishTime;
-                            $data['adj_conf'] = $confidence;
-                            $save = \REDCap::saveData(
-                                $this->getClient()->getEm()->getProjectId(),
-                                'json',
-                                json_encode(array($data))
-                            );
+                    if(!empty($response) && !strpos($response, 'error')) {
+                        $data['task_uuid'] = $task_uuid;
+                        $data['status'] = 'completed';
+                        $data['coordinator_response'] = $results;
+                        $data['coordinator_user_id'] = USERID;
+                        $data['readable'] = $readable;
+                        $data['response_json'] = json_encode($response); //Different than full_json, response is a different structure. Changed to allow for multiple adjudicaiton submissions if erroneous
+                        $data['adjudication_date'] = $update_json->finishTime;
+                        $data['adj_conf'] = $confidence;
+                        $save = \REDCap::saveData(
+                            $this->getClient()->getEm()->getProjectId(),
+                            'json',
+                            json_encode(array($data))
+                        );
 
-                            if (!empty($save['errors'])) {
-                                if (is_array($save['errors']))
-                                    $this->getClient()->getEm()->emError(implode(",", $save['errors']));
-                                else
-                                    $this->getClient()->getEm()->emError($save['errors']);
-                                http_response_code(400); //return bad request
-                            }
-
-                            http_response_code(200);//return 200 on success
-                        } else {
-                            $this->getClient()->getEm()->emError($response);
+                        if (!empty($save['errors'])) {
+                            if (is_array($save['errors']))
+                                throw new \Exception('Error: '. implode(".", $save['errors']));
+                            else
+                                throw new \Exception('Error: '. $save['errors']);
                         }
 
-                    } else {
-                        $this->getClient()->getEm()->emError("Record $task_uuid recieved no response from pattern PUT");
-                        http_response_code(400); //return bad request
+                        http_response_code(200);//return 200 on success
+                    }else{
+                        throw new \Exception('ERROR: encountered erroneous response data for user: ' . $user_uuid . ' task ' . $record_data->provider_task_uuid);
                     }
+
+
                 } else {
                     $this->getClient()->getEm()->emError("Record $task_uuid has already been updated, skipping");
                     http_response_code(200);//send 200 to remove picture from screen
                 }
 
             } else {
-                $this->getClient()->getEm()->emError('Failed to update task, empty parameters received from client');
+                throw new \Exception('ERROR: Failed to update task, empty parameters recieved from client');
             }
         } catch (\Exception $e) {
             $this->getClient()->getEm()->emError($e->getMessage());

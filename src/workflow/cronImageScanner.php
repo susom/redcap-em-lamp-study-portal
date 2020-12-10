@@ -18,6 +18,9 @@ if($type == "image_adjudication"){
     <span class="navbar-text">
         Image scan finished, please check record status dashboard for results
         <br>
+        Note: This process will only pull data when an open provider task for image adjudicaton is found. If none are available,
+        no record updates will be performed.
+        <br>
         <strong>Duration of run: <?php echo (microtime(true) - $startTS) ?></strong>
     </span>
 </nav>
