@@ -24,11 +24,13 @@ $image_payload = $module->fetchImages();
 if(!empty($image_payload)){
 ?>
 
+
+
 <nav class="navbar navbar-light bg-light">
-            <span class="navbar-text">
-                Total images to be adjudicated:
-                    <strong id="adjudicationCount"><?php echo sizeof($image_payload) ?></strong>
-            </span>
+    <span class="navbar-text">
+        Total images to be adjudicated:
+            <strong id="adjudicationCount"><?php echo sizeof($image_payload) ?></strong>
+    </span>
 </nav>
 <br>
 <div class='row' style="margin-bottom: 20px;">
@@ -40,6 +42,8 @@ if(!empty($image_payload)){
 <div class='row' style="margin-bottom: 20px;">
     <div class='col-lg-6'>
         <div class='card' style="background-color: rgb(241,241,241)">
+            <div class = 'card-header'>Record id : <?php echo $image['task_uuid']; ?></div>
+
             <div class='card-content text-center' style="margin-top:10px;">
                 <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
             </div>
@@ -100,6 +104,7 @@ if(!empty($image_payload)){
         ?>
         <div class='col-lg-6'>
             <div class='card' style="background-color: rgb(241,241,241)">
+                <div class = 'card-header'>Record id : <?php echo $image['task_uuid']; ?></div>
                 <div class='card-content text-center' style="margin-top:10px;">
                     <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
                 </div>
@@ -157,14 +162,14 @@ if(!empty($image_payload)){
         </div>
         <?php
     }
-    }
-    } else {
-        ?>
-        <div class="alert alert-warning" role="alert" style="margin-right: 20px;">
-            No current images found needing adjudication
-        </div>
-        <?php
-    }
+    } //foreach
+} else {
+    ?>
+    <div class="alert alert-warning" role="alert" style="margin-right: 20px;">
+        No current images found needing adjudication
+    </div>
+    <?php
+}
 
 
 ?>
