@@ -57,5 +57,14 @@ LAMP.decrementCounter = () => {
     count ? $("#adjudicationCount").text(count -= 1) : ''
 }
 
-
-LAMP.bindEvents();
+$(document).ready(function(){
+    LAMP.bindEvents();
+    $('.img')
+        .wrap('<span style="display:inline-block"></span>')
+        .css('display', 'block')
+        .parent()
+        .zoom({
+            magnify: 0.2
+        });
+});
+// LAMP.bindEvents();

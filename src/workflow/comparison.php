@@ -42,10 +42,15 @@ if(!empty($image_payload)){
 <div class='row' style="margin-bottom: 20px;">
     <div class='col-lg-6'>
         <div class='card' style="background-color: rgb(241,241,241)">
-            <div class = 'card-header'>Record id : <?php echo $image['task_uuid']; ?></div>
+            <div class = 'card-header'>
+                <h6>
+                    <span class="badge badge-light">Task/Record id : <?php echo $image['task_uuid']; ?></span>
+                    <span class="float-right badge badge-light">Patient id : <?php echo $image['user_uuid']; ?></span>
+                </h6>
+            </div>
 
             <div class='card-content text-center' style="margin-top:10px;">
-                <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
+                <img class = "img" src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
             </div>
             <div
                 class='card-body'
@@ -104,9 +109,15 @@ if(!empty($image_payload)){
         ?>
         <div class='col-lg-6'>
             <div class='card' style="background-color: rgb(241,241,241)">
-                <div class = 'card-header'>Record id : <?php echo $image['task_uuid']; ?></div>
+                <div class = 'card-header'>
+                    <h6>
+                        <span class="badge badge-light">Task/Record id : <?php echo $image['task_uuid']; ?></span>
+                        <span class="float-right badge badge-light">Patient id : <?php echo $image['user_uuid']; ?></span>
+                    </h6>
+
+                </div>
                 <div class='card-content text-center' style="margin-top:10px;">
-                    <img src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
+                    <img class = "img" src="<?php echo $image['photo_binary']; ?>" style="max-width: 400px; max-height: 400px;">
                 </div>
                 <div
                     class='card-body'
@@ -173,4 +184,5 @@ if(!empty($image_payload)){
 
 
 ?>
-<script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>
+    <script src="<?php echo $module->getUrl('src/js/jquery.zoom.js'); ?>"></script>
+    <script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>
