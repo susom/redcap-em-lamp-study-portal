@@ -53,6 +53,9 @@ class DataImport
         $patients = $this->getPatients();
         if ($patients['totalCount'] > 0) {
             foreach ($patients['results'] as $index => $patient) {
+                if (!$this->checkValidPatient($patient))
+                    continue;
+
                 $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
                 if (!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
                     $this->createPatientRecord($patientObj, $patientObj->getConstants());
@@ -71,6 +74,19 @@ class DataImport
 
     }
 
+    /**
+     * @param $patient_json
+     * @return bool
+     */
+    public function checkValidPatient($patient_json)
+    {
+        $first = $patient_json['user']['firstName'];
+        $last = $patient_json['user']['lastName'];
+        if (strpos($first,"first_") !== false && strpos($last, "last_") !== false) {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * @param Patient $patient
