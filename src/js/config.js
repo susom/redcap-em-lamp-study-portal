@@ -66,5 +66,12 @@ $(document).ready(function(){
         .zoom({
             magnify: 0.2
         });
+
+    $('[data-toggle="popover"]').popover({
+        trigger: 'focus',
+        html: true,
+        content: `<img src ="${$('.example').attr('data-image')}">`
+    })
+
 });
 // LAMP.bindEvents();

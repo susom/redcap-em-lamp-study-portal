@@ -24,8 +24,6 @@ $image_payload = $module->fetchImages();
 if(!empty($image_payload)){
 ?>
 
-
-
 <nav class="navbar navbar-light bg-light">
     <span class="navbar-text">
         Total images to be adjudicated:
@@ -33,12 +31,26 @@ if(!empty($image_payload)){
     </span>
 </nav>
 <br>
+<div>
+    <ul class="list-unstyled">
+        <li>For the following Images:</li>
+        <ul>
+            <li>Note where the result zone and the capillary is located (blue/break line on the capillary).</li>
+            <li>Note the small droplet of liquid in the capillary, which is ok.</li>
+        </ul>
+    </ul>
+    <button type="button" class="btn btn-sm btn-info example" data-toggle="popover" data-image="<?php echo $module->getUrl('src/workflow/example.jpeg');?>">
+        Show example diagram
+    </button>
+</div>
+<br>
 <div class='row' style="margin-bottom: 20px;">
     <?php
     foreach ($image_payload as $index => $image){
         if ($index % 2 == 0 && $index != 0) { //new row entry
     ?>
 </div>
+
 <div class='row' style="margin-bottom: 20px;">
     <div class='col-lg-6'>
         <div class='card' style="background-color: rgb(241,241,241)">
@@ -186,3 +198,8 @@ if(!empty($image_payload)){
 ?>
     <script src="<?php echo $module->getUrl('src/js/jquery.zoom.js'); ?>"></script>
     <script src="<?php echo $module->getUrl('src/js/config.js'); ?>"></script>
+    <style type="text/css">
+        .popover{
+            max-width:800px;
+        }
+    </style>
