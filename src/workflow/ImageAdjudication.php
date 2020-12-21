@@ -119,16 +119,30 @@ class ImageAdjudication
      * @param $type
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function updateTask($user_uuid, $task_uuid, $results, $confidence, $readable)
+    public function updateTask($user_uuid, $task_uuid, $results, $confidence,
+                               $readable, $comments, $fallen, $passfail, $reagents, $shattered, $volume, $wick)
     {
         try {
-            if (isset($user_uuid) && isset($task_uuid) && isset($results) && isset($confidence) && isset($readable)) {
+            $numargs = func_num_args();
+
+            if ($numargs === 12) {
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
                 $this->setProviderSurvey($record_data->provider_survey_uuid);
                 if (empty($record_data->adjudication_date)) { //If the record hasn't already been adjudicated
-                    $update_json = $this->prepareProviderTask($record_data, array('results' => $results, 'readable' => $readable, 'adj_conf'=> $confidence));
+                    $update_json = $this->prepareProviderTask($record_data, array(
+                        'results' => $results,
+                        'readable' => $readable,
+                        'adj_conf'=> $confidence,
+                        'comments' => $comments,
+                        'fallen' => $fallen,
+                        'passfail' => $passfail,
+                        'reagents' => $reagents,
+                        'shattered' => $shattered,
+                        'volume' => $volume,
+                        'wick' => $wick
+                    ));
 
                     $options = [
                         'headers' => [
@@ -153,6 +167,14 @@ class ImageAdjudication
                         $data['response_json'] = json_encode($response); //Different than full_json, response is a different structure. Changed to allow for multiple adjudicaiton submissions if erroneous
                         $data['adjudication_date'] = $update_json->finishTime;
                         $data['adj_conf'] = $confidence;
+                        $data['comments'] = $comments;
+                        $data['fallen'] = $fallen;
+                        $data['passfail'] = $passfail;
+                        $data['reagents'] = $reagents;
+                        $data['shattered'] = $shattered;
+                        $data['volume'] = $volume;
+                        $data['wick'] = $wick;
+
                         $save = \REDCap::saveData(
                             $this->getClient()->getEm()->getProjectId(),
                             'json',
@@ -216,12 +238,12 @@ class ImageAdjudication
             if ($element['constraints']['type'] == 'MultiValueIntegerConstraints') {
                 $measurement->json = [$data[$element['identifier']]];
             } else {
-                if($element['identifier'] === "adj_conf")
+                if($element['identifier'] === "adj_conf" || $element['identifier'] === "passfail" || $element['identifier'] === "results")
                     $measurement->json = (int)$data[$element['identifier']];
-                elseif($element['identifier'] === "readable")
-                    $measurement->json = $data[$element['identifier']] == "true" ? true : false;
-                else
+                elseif($element['identifier'] === "comments")
                     $measurement->json = $data[$element['identifier']];
+                else
+                    $measurement->json = $data[$element['identifier']] == "true" ? true : false;
             }
 
             $measurement->modified = gmdate("Y-m-d\TH:i:s\Z");

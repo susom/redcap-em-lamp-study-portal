@@ -2,24 +2,27 @@ if(typeof LAMP === 'undefined') { var LAMP = {}; }
 
 LAMP.bindEvents = () => {
     $('.submit').on("click", function(){
-        let colRef = $(this).parents('.col-lg-6');
+        let colRef = $(this).parents('.col-lg-12');
         let cardBody = $(this).parents('.card-body');
-        let readable;
-        let confidence = $(cardBody).find('.form-control-range').val();
-        let result;
+        // let confidence = $(cardBody).find('.form-control-range').val();
+        // let comments = $(cardBody).find('.form-control').val();
+
+        let submissionData = {};
         for(let i of $(cardBody).find('.form-check-input')){
             if(i.checked){
-                $(i).attr('name') === 'results' ? result = $(i).val() : readable = $(i).val();
+                submissionData[$(i).attr('name')] = $(i).val();
             }
 
         }
-        if(result && readable){
-            LAMP.put(colRef, cardBody.attr('data-user-uuid'), cardBody.attr('data-task-uuid'), readable, confidence, result);
+        submissionData['confidence'] = $(cardBody).find('.form-control-range').val();
+        submissionData['comments'] = $(cardBody).find('.form-control').val();
+        submissionData['user_uuid'] = $(cardBody).attr('data-user-uuid');
+        submissionData['task_uuid'] = $(cardBody).attr('data-task-uuid');
+        console.log(submissionData)
+        if(Object.keys(submissionData).length == 12){ //user has completed all form info
+            LAMP.put(colRef, submissionData);
         } else {
-            if(!result)
-                $(colRef).find('.result-box').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
-            if(!readable)
-                $(colRef).find('.readable-box').css("border", "2px solid red"); //set textarea to red, display tooltip perhaps
+            $(colRef).find('form').css({"border": "2px solid red"});
         }
     });
 
@@ -33,16 +36,16 @@ LAMP.bindEvents = () => {
 
 }
 
-LAMP.put = (colRef, user_uuid, taskUUID, readable, confidence, type) => {
-    let obj = {
-        'user_uuid': user_uuid,
-        'task_uuid': taskUUID,
-        'readable': readable,
-        'confidence': confidence,
-        'results': type
-    };
+LAMP.put = (colRef, submissionData) => {
+    // let obj = {
+    //     'user_uuid': user_uuid,
+    //     'task_uuid': taskUUID,
+    //     'readable': readable,
+    //     'confidence': confidence,
+    //     'results': type
+    // };
     $.ajax({
-        data: obj,
+        data: submissionData,
         type: 'POST'
     })
         .done((res) => colRef.remove()) //remove column reference
@@ -71,7 +74,9 @@ $(document).ready(function(){
         trigger: 'focus',
         html: true,
         content: `<img src ="${$('.example').attr('data-image')}">`
-    })
+    });
+
+    $('[data-toggle="tooltip"]').tooltip();
 
 });
 // LAMP.bindEvents();
