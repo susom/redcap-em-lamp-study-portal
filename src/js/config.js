@@ -4,22 +4,21 @@ LAMP.bindEvents = () => {
     $('.submit').on("click", function(){
         let colRef = $(this).parents('.col-lg-12');
         let cardBody = $(this).parents('.card-body');
-        // let confidence = $(cardBody).find('.form-control-range').val();
-        // let comments = $(cardBody).find('.form-control').val();
-
         let submissionData = {};
+
         for(let i of $(cardBody).find('.form-check-input')){
             if(i.checked){
                 submissionData[$(i).attr('name')] = $(i).val();
             }
 
         }
+
         submissionData['confidence'] = $(cardBody).find('.form-control-range').val();
         submissionData['comments'] = $(cardBody).find('.form-control').val();
         submissionData['user_uuid'] = $(cardBody).attr('data-user-uuid');
         submissionData['task_uuid'] = $(cardBody).attr('data-task-uuid');
-        console.log(submissionData)
-        if(Object.keys(submissionData).length == 12){ //user has completed all form info
+
+        if(Object.keys(submissionData).length === 12){ //user has completed all form info
             LAMP.put(colRef, submissionData);
         } else {
             $(colRef).find('form').css({"border": "2px solid red"});
@@ -37,13 +36,6 @@ LAMP.bindEvents = () => {
 }
 
 LAMP.put = (colRef, submissionData) => {
-    // let obj = {
-    //     'user_uuid': user_uuid,
-    //     'task_uuid': taskUUID,
-    //     'readable': readable,
-    //     'confidence': confidence,
-    //     'results': type
-    // };
     $.ajax({
         data: submissionData,
         type: 'POST'
@@ -79,4 +71,3 @@ $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();
 
 });
-// LAMP.bindEvents();

@@ -187,10 +187,12 @@ class DataImport
                     } //End of measurement iteration
 
                     if (!empty($task['finishTime'])) {
-                       if(! isset($Proj->metadata[$prefix . 'finish_time']))
+                       if(! isset($Proj->metadata[$prefix . 'finish_time'])) {
                            array_push($missing_fields, $prefix . 'finish_time');
-                       else
+                       } else {
                            $form_data[$prefix . 'finish_time'] = $task['finishTime'];
+                           $form_data[$prefix . 'readable_finish_time'] = gmdate('Y-m-d H:i:s', strtotime($task['finishTime']));
+                       }
                     }
 
                     if (!empty($task['startTime'])) {
