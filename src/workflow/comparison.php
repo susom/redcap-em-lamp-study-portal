@@ -21,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         filter_var($_POST['reagents'], FILTER_SANITIZE_STRING),
         filter_var($_POST['shattered'], FILTER_SANITIZE_STRING),
         filter_var($_POST['volume'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['wick'], FILTER_SANITIZE_STRING)
+        filter_var($_POST['wick'], FILTER_SANITIZE_STRING),
+        filter_var($_POST['seal'], FILTER_SANITIZE_STRING)
+
     );
 }
 
@@ -174,7 +176,7 @@ if(!empty($image_payload)){
                                 <label class="form-check-label">No</label>
                             </div>
                         </div>
-                        <div class="form-group passfail-box col-md-3">
+                        <div class="form-group passfail-box col-md-3" style="margin-top: 20px">
                             <label>
                                 <strong>Pass or Fail</strong>
                                 <i class="far fa-question-circle" data-toggle="tooltip" title="Would this be considered a passed or failed test
@@ -201,6 +203,22 @@ if(!empty($image_payload)){
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" name="volume" type="radio" value="false" >
+                                <label class="form-check-label">No</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group seal-box col-md-3">
+                            <label>
+                                <strong>Seal</strong>
+                                <i class="far fa-question-circle" data-toggle="tooltip" title="Is the clear seal pushed up and visible in the readout zone?"></i>
+                            </label>
+                            <div class="form-check">
+                                <input class="form-check-input" name="seal" type="radio" value="true">
+                                <label class="form-check-label">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" name="seal" type="radio" value="false" >
                                 <label class="form-check-label">No</label>
                             </div>
                         </div>

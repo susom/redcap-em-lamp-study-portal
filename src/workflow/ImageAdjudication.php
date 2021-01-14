@@ -120,12 +120,12 @@ class ImageAdjudication
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function updateTask($user_uuid, $task_uuid, $results, $confidence,
-                               $readable, $comments, $fallen, $passfail, $reagents, $shattered, $volume, $wick)
+                               $readable, $comments, $fallen, $passfail, $reagents, $shattered, $volume, $wick, $seal)
     {
         try {
             $numargs = func_num_args();
 
-            if ($numargs === 12) {
+            if ($numargs === 13) {
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
@@ -141,7 +141,8 @@ class ImageAdjudication
                         'reagents' => $reagents,
                         'shattered' => $shattered,
                         'volume' => $volume,
-                        'wick' => $wick
+                        'wick' => $wick,
+                        'seal' => $seal
                     ));
 
                     $options = [
@@ -174,6 +175,7 @@ class ImageAdjudication
                         $data['shattered'] = $shattered;
                         $data['volume'] = $volume;
                         $data['wick'] = $wick;
+                        $data['seal'] = $seal;
 
                         $save = \REDCap::saveData(
                             $this->getClient()->getEm()->getProjectId(),
