@@ -240,8 +240,10 @@ class ImageAdjudication
             if ($element['constraints']['type'] == 'MultiValueIntegerConstraints') {
                 $measurement->json = [$data[$element['identifier']]];
             } else {
-                if($element['identifier'] === "adj_conf" || $element['identifier'] === "passfail" || $element['identifier'] === "results")
+                if($element['identifier'] === "adj_conf")
                     $measurement->json = (int)$data[$element['identifier']];
+                elseif($element['identifier'] === "passfail" || $element['identifier'] === 'results')
+                    $measurement->json = array($data[$element['identifier']]);
                 elseif($element['identifier'] === "comments")
                     $measurement->json = $data[$element['identifier']];
                 else
