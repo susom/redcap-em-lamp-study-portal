@@ -70,12 +70,18 @@ class Media
      */
     public function uploadImage($record, $field, $event, $api_token)
     {
-        file_put_contents('/tmp/' . $this->getTitle() . '.png', $this->getBinary());
+        $is_pdf = strpos($this->getTitle(), '.pdf');
+        if($is_pdf)
+            file_put_contents('/tmp/' . $this->getTitle(), $this->getBinary());
+        else
+            file_put_contents('/tmp/' . $this->getTitle() . '.jpeg', $this->getBinary());
+
+        $file_name = $is_pdf ? $this->getTitle() : $this->getTitle() . '.jpeg';
         $this->writeFileToApi(
             array(
-                'tmp_name' => '/tmp/' . $this->getTitle() . '.png',
-                'type' => 'image/png',
-                'name' => $this->getTitle()
+                'tmp_name' => '/tmp/' . $file_name,
+                'type' => $is_pdf ? 'application/pdf': 'image/jpeg',
+                'name' => $file_name
             ),
             $record, $field, $event, $api_token);
     }
