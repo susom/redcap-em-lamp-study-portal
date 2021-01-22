@@ -180,6 +180,9 @@ class DataImport
                                 continue; //skip field push, images can be handled after
                         }
 
+                        if(strpos($question_id,"i_")) //if the question is designated to be skipped
+                            continue;
+
                         if (!isset($Proj->metadata[$full_name]))
                             array_push($missing_fields, $full_name);
                         else
