@@ -93,5 +93,10 @@
         "prefix": "rt1_",
         "event_name": "test_3_arm_1",
         "description": "Test 3 Report Results"
+    },
+    "sv-AKcRYH0vWr8O6gkD6IFvZw": {
+        "prefix": "u_",
+        "event_name": "baseline_arm_1",
+        "description": "Usability"
     }
 }
