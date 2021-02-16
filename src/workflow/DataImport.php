@@ -29,6 +29,9 @@ class DataImport
     /** @var -> List of activities to ignore */
     private $ignore_list;
 
+    /** @bool -> T/F to ignore pictures & attachments */
+    private $ignore_uploads;
+
     /**
      * @var array $post_processed_files
      */
@@ -38,12 +41,13 @@ class DataImport
      * DataImport constructor.
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, $ignore_uploads = false)
     {
         $this->setClient($client);
         $this->setTsStart(microtime(true));
         $this->setMap(json_decode(file_get_contents($this->getClient()->getEm()->getModulePath() . 'src/workflow/map.json'), true));
         $this->setIgnoreList(json_decode(file_get_contents($this->getClient()->getEm()->getModulePath() . 'src/workflow/ignore.json'), true));
+        $this->setIgnoreUploads($ignore_uploads);
         $this->processPatients();
     }
 
@@ -65,7 +69,9 @@ class DataImport
 
                 $this->createTaskRecord($patientObj, $last_task_updated_time);
             }
-            $this->postProcessUpload();
+
+            if(!$this->getIgnoreUploads()) // Only process upload files if ignore_uploads is false
+                $this->postProcessUpload();
         } else {
             $this->getClient()->getEm()->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
             \REDCap::logEvent("ERROR/EXCEPTION occurred", '', '', 'No patients have been returned from Pattern');
@@ -146,7 +152,7 @@ class DataImport
 
         foreach($all_tasks as $index => $task) {
 
-            if(isset($task['finishTime'])) { //check if we have to update records
+            if(isset($task['finishTime']) && !$this->getIgnoreUploads()) { //check if we have to update records
                 $ft = strtotime($task['finishTime']);
                 $lu = strtotime($last_task_updated_time);
 
@@ -465,12 +471,23 @@ class DataImport
         return $this->ignore_list;
     }
 
+
     /**
      * @param mixed $ignore_list
      */
     public function setIgnoreList($ignore_list)
     {
         $this->ignore_list = $ignore_list;
+    }
+
+    public function getIgnoreUploads()
+    {
+        return $this->ignore_uploads;
+    }
+
+    public function setIgnoreUploads($response)
+    {
+        $this->ignore_uploads = $response;
     }
 
     /**

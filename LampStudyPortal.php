@@ -76,7 +76,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                         $this->setWorkflow(new DataImport($this->getClient()));
                         break;
                     default:
-                        $this->emError("Invalid workflow: $workflow");
+                        $this->emError("Invalid workflow: $this->workflow");
                 }
 
             }
@@ -88,6 +88,39 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    // Refresh user survey responses re
+    public function refreshUserSurveyResponse()
+    {
+        try {
+            if (isset($_GET['pid'])
+                && $this->getProjectSetting('study-group')
+                && $this->getProjectSetting('authentication-email')
+                && $this->getProjectSetting('authentication-password'))
+            {
+                $this->setClient(
+                    new Client(
+                        $this,
+                        $this->getProjectSetting('study-group'),
+                        $this->getProjectSetting('authentication-email'),
+                        $this->getProjectSetting('authentication-password'),
+                        $this->getProjectSetting('current-token'),
+                        $this->getProjectSetting('token-expiration')
+                    ));
+
+                $this->getClient()->checkToken();
+
+                // This module supports multiple 'use cases' - based on the workflow
+                $this->workflow = $this->getProjectSetting("workflow");
+                $this->setWorkflow(new DataImport($this->getClient(),true));
+
+            }
+            // Other code to run when object is instantiated
+        } catch (\Exception $e) {
+            \REDCap::logEvent("ERROR/EXCEPTION occurred " . $e->getMessage(), '', null, null);
+            $this->emError($e->getMessage());
+            echo $e->getMessage();
+        }
+    }
 
     /**
      * @param $pid
@@ -101,6 +134,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             return $link;
 
         if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
+            return $link;
+
+        if($workflow == "lazy_import" && $link["name"] == "Trigger data refresh")
             return $link;
 
         if($workflow == "lazy_import" && $link['name'] == "Trigger data scan")
@@ -139,6 +175,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
+
             $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
         }
     }
