@@ -54,31 +54,45 @@ class DataImport
     private function processPatients()
     {
         $this->getClient()->getEm()->emLog('Starting query for patients');
-        $patients = $this->getPatients();
-        if ($patients['totalCount'] > 0) {
-            foreach ($patients['results'] as $index => $patient) {
-                if (!$this->checkValidPatient($patient))
-                    continue;
-
-                $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
-                if (!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
-                    $this->createPatientRecord($patientObj, $patientObj->getConstants());
-                    $this->getClient()->getEm()->emLog('Patient UUID ' . $patient['user']['uuid'] . ' Created');
-                }
-                $last_task_updated_time = $this->checkLastUpdateTime($patient['user']['uuid']);
-
-                $this->createTaskRecord($patientObj, $last_task_updated_time);
-            }
-
-            if(!$this->getIgnoreUploads()) // Only process upload files if ignore_uploads is false
-                $this->postProcessUpload();
-        } else {
+        $patients = $this->getPatients(); //will return 0-x where x is 200 max
+        if($patients['totalCount'] == 0) {
             $this->getClient()->getEm()->emError('No patients currently exist for current GroupID ', $this->getClient()->getGroup());
             \REDCap::logEvent("ERROR/EXCEPTION occurred", '', '', 'No patients have been returned from Pattern');
+        } else { //total is greater than 200 max, have to partition
+            $total_left = $patients['totalCount'];
+            $offset = 0;
+            while($total_left > 0) {
+                $this->runPatientIteration($patients, $offset); //each subsequent will be in batches of 200
+                $total_left = $total_left - 200;
+                $offset = $offset + 200;
+            }
+        }
+    }
 
+    public function runPatientIteration($patients, $offset = 0)
+    {
+        if($offset !== 0)
+            $patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . "/members?limit=200&offset=$offset");
+
+        foreach ($patients['results'] as $index => $patient) {
+            if (!$this->checkValidPatient($patient))
+                continue;
+
+            $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
+            if (!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
+                $this->createPatientRecord($patientObj, $patientObj->getConstants());
+                $this->getClient()->getEm()->emLog('Patient UUID ' . $patient['user']['uuid'] . ' Created');
+            }
+            $last_task_updated_time = $this->checkLastUpdateTime($patient['user']['uuid']);
+
+            $this->createTaskRecord($patientObj, $last_task_updated_time);
         }
 
+        if(!$this->getIgnoreUploads()) // Only process upload files if ignore_uploads is false
+            $this->postProcessUpload();
+
     }
+
 
     /**
      * @param $patient_json
@@ -411,7 +425,7 @@ class DataImport
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . '/members');
+            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . '/members?limit=200');
         } else {
             $this->patients = $patients;
         }
