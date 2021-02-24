@@ -18,7 +18,7 @@ LAMP.bindEvents = () => {
         submissionData['user_uuid'] = $(cardBody).attr('data-user-uuid');
         submissionData['task_uuid'] = $(cardBody).attr('data-task-uuid');
 
-        if(Object.keys(submissionData).length === 13){ //user has completed all form info
+        if(Object.keys(submissionData).length === 11){ //user has completed all form info
             LAMP.put(colRef, submissionData);
         } else {
             $(colRef).find('form').css({"border": "2px solid red"});

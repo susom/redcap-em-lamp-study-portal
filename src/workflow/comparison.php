@@ -16,12 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         filter_var($_POST['confidence'], FILTER_SANITIZE_STRING),
         filter_var($_POST['readable'], FILTER_SANITIZE_STRING),
         filter_var($_POST['comments'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['fallen'], FILTER_SANITIZE_STRING),
         filter_var($_POST['passfail'], FILTER_SANITIZE_STRING),
         filter_var($_POST['reagents'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['shattered'], FILTER_SANITIZE_STRING),
         filter_var($_POST['volume'], FILTER_SANITIZE_STRING),
-        filter_var($_POST['wick'], FILTER_SANITIZE_STRING),
+        filter_var($_POST['disc'], FILTER_SANITIZE_STRING),
         filter_var($_POST['seal'], FILTER_SANITIZE_STRING)
 
     );
@@ -48,7 +46,7 @@ if(!empty($image_payload)){
             <li>Note the small droplet of liquid in the capillary, which is ok.</li>
         </ul>
     </ul>
-    <button type="button" class="btn btn-sm btn-info example" data-toggle="popover" data-image="<?php echo $module->getUrl('src/workflow/example.jpeg');?>">
+    <button type="button" class="btn btn-sm btn-info example" data-toggle="popover" data-image="<?php echo $module->getUrl('src/workflow/example2.jpeg');?>">
         Show example diagram
     </button>
 </div>
@@ -118,36 +116,6 @@ if(!empty($image_payload)){
                                 <label class="form-check-label">No liquid visible</label>
                             </div>
                         </div>
-                        <div class="form-group shattered-box col-md-3">
-                            <label>
-                                <strong>Shattered</strong>
-                                <i class="far fa-question-circle" data-toggle="tooltip" title="Is the capillary shattered in more than one location?"></i>
-                            </label>
-                            <div class="form-check">
-                                <input class="form-check-input" name="shattered" type="radio" value="true">
-                                <label class="form-check-label">Yes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" name="shattered" type="radio" value="false" >
-                                <label class="form-check-label">No</label>
-                            </div>
-                        </div>
-                        <div class="form-group fallen-box col-md-3">
-                            <label>
-                                <strong>Fallen</strong>
-                                <i class="far fa-question-circle" data-toggle="tooltip" title="Have any capillary parts fallen into the result zone?"></i>
-                            </label>
-                            <div class="form-check">
-                                <input class="form-check-input" name="fallen" type="radio" value="true">
-                                <label class="form-check-label">Yes</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" name="fallen" type="radio" value="false" >
-                                <label class="form-check-label">No</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group reagents-box col-md-3">
                             <label>
                                 <strong>Reagents</strong>
@@ -162,20 +130,22 @@ if(!empty($image_payload)){
                                 <label class="form-check-label">No</label>
                             </div>
                         </div>
-                        <div class="form-group wick-box col-md-3">
+                        <div class="form-group disc-box col-md-3">
                             <label>
-                                <strong>Wick</strong>
-                                <i class="far fa-question-circle" data-toggle="tooltip" title="Is there a visible “wick” (look for the reflective piece)?"></i>
+                                <strong>Disc</strong>
+                                <i class="far fa-question-circle" data-toggle="tooltip" title="Is the cellulose disc visible and is it touching the tip of the capillary?"></i>
                             </label>
                             <div class="form-check">
-                                <input class="form-check-input" name="wick" type="radio" value="true">
+                                <input class="form-check-input" name="disc" type="radio" value="true">
                                 <label class="form-check-label">Yes</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" name="wick" type="radio" value="false" >
+                                <input class="form-check-input" name="disc" type="radio" value="false" >
                                 <label class="form-check-label">No</label>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group passfail-box col-md-3">
                             <label>
                                 <strong>Pass or Fail</strong>
@@ -193,9 +163,8 @@ if(!empty($image_payload)){
                         </div>
                         <div class="form-group volume-box col-md-3">
                             <label>
-                                <strong>Volume</strong>
-                                <i class="far fa-question-circle" data-toggle="tooltip" title="Look at the zone above the black rubber
-                                    grommet/cap (result zone).Is there enough (~3mm) colored liquid at the result zone?"></i>
+                                <strong>Readout Volume</strong>
+                                <i class="far fa-question-circle" data-toggle="tooltip" title="Look at the zone above the black rubber grommet/cap (result zone).Is there enough (~15mm) colored liquid at the result zone?"></i>
                             </label>
                             <div class="form-check">
                                 <input class="form-check-input" name="volume" type="radio" value="true">
@@ -206,9 +175,7 @@ if(!empty($image_payload)){
                                 <label class="form-check-label">No</label>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group seal-box col-md-3" style="margin-top: 20px;">
+                        <div class="form-group seal-box col-md-3">
                             <label>
                                 <strong>Seal</strong>
                                 <i class="far fa-question-circle" data-toggle="tooltip" title="Is the clear seal pushed up and visible in the readout zone?"></i>
@@ -223,6 +190,7 @@ if(!empty($image_payload)){
                             </div>
                         </div>
                     </div>
+
                     <br>
                     <div class="form-group">
                         <label for="range-<?php echo $index; ?>" ><strong>Confidence</strong></label>

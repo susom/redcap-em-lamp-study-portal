@@ -120,12 +120,12 @@ class ImageAdjudication
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function updateTask($user_uuid, $task_uuid, $results, $confidence,
-                               $readable, $comments, $fallen, $passfail, $reagents, $shattered, $volume, $wick, $seal)
+                               $readable, $comments, $passfail, $reagents, $volume, $disc, $seal)
     {
         try {
             $numargs = func_num_args();
 
-            if ($numargs === 13) {
+            if ($numargs === 11) {
                 global $Proj;
                 $record_data = json_decode(\REDCap::getData($Proj->project_id, 'json', $task_uuid))[0]; //Fetch task record
 
@@ -136,12 +136,10 @@ class ImageAdjudication
                         'readable' => $readable,
                         'adj_conf'=> $confidence,
                         'comments' => $comments,
-                        'fallen' => $fallen,
                         'passfail' => $passfail,
                         'reagents' => $reagents,
-                        'shattered' => $shattered,
                         'volume' => $volume,
-                        'wick' => $wick,
+                        'disc' => $disc,
                         'seal' => $seal
                     ));
 
@@ -169,12 +167,10 @@ class ImageAdjudication
                         $data['adjudication_date'] = $update_json->finishTime;
                         $data['adj_conf'] = $confidence;
                         $data['comments'] = $comments;
-                        $data['fallen'] = $fallen;
                         $data['passfail'] = $passfail;
                         $data['reagents'] = $reagents;
-                        $data['shattered'] = $shattered;
                         $data['volume'] = $volume;
-                        $data['wick'] = $wick;
+                        $data['disc'] = $disc;
                         $data['seal'] = $seal;
 
                         $save = \REDCap::saveData(
