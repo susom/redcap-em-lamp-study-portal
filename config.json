@@ -134,8 +134,8 @@
             "cron_name": "lamp_data_import",
             "cron_description": "This cron will hit pattern's API and pull all valid patient information into redcap",
             "method": "cronDataImport",
-            "cron_frequency": "1800",
-            "cron_max_run_time": "1800"
+            "cron_frequency": "14400",
+            "cron_max_run_time": "7200"
         }
 
     ],

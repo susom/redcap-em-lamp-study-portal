@@ -75,6 +75,7 @@ class DataImport
             $patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . "/members?limit=200&offset=$offset");
 
         foreach ($patients['results'] as $index => $patient) {
+            sleep(3);
             if (!$this->checkValidPatient($patient))
                 continue;
 
