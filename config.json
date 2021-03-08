@@ -97,16 +97,6 @@
                 "url": "src/workflow/comparison.php"
             },
             {
-                "name": "Trigger data scan",
-                "icon": "gear",
-                "url": "src/workflow/cronDataImport.php"
-            },
-            {
-                "name": "Trigger data refresh",
-                "icon": "gear",
-                "url": "src/workflow/simpleRefresh.php"
-            },
-            {
                 "name": "Trigger image scan",
                 "icon": "gear",
                 "url": "src/workflow/cronImageScanner.php"

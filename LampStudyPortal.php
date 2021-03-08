@@ -136,11 +136,11 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
             return $link;
 
-        if($workflow == "lazy_import" && $link["name"] == "Trigger data refresh" && USERID === 'jmschult')
-            return $link;
-
-        if($workflow == "lazy_import" && $link['name'] == "Trigger data scan" && USERID === 'jmschult')
-            return $link;
+//        if($workflow == "lazy_import" && $link["name"] == "Trigger data refresh")
+//            return $link;
+//
+//        if($workflow == "lazy_import" && $link['name'] == "Trigger data scan")
+//            return $link;
     }
 
 
