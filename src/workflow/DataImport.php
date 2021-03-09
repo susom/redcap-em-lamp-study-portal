@@ -76,6 +76,10 @@ class DataImport
 
         foreach ($patients['results'] as $index => $patient) {
             sleep(1);
+            $total_ct = $patients['totalCount'];
+            $patient_id = $patient['user']['uuid'];
+            $this->getClient()->getEm()->emLog("Running patient iteration, total: $total_ct, offset: " . ($offset+$index) . ", current patient: $patient_id ");
+
             if (!$this->checkValidPatient($patient))
                 continue;
 
