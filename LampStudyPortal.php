@@ -154,6 +154,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         $url = $this->getUrl('src/workflow/cronImageScanner.php', true); //has to be page
 
         $projects = $this->framework->getProjectsWithModuleEnabled();
+
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
@@ -175,8 +176,12 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
+            try {
+                $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+            } catch (\Exception $e) {
+                $this->emError($project_id, $e->getMessage(), debug_backtrace(0));
+            }
 
-            $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
         }
     }
 
