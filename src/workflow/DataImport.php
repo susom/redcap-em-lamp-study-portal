@@ -82,6 +82,8 @@ class DataImport
 
             if (!$this->checkValidPatient($patient))
                 continue;
+//            if ($patient_id !== 'u-UNAuFz-kQ-DuBjwdSLnBQA')
+//                continue;
 
             $patientObj = new Patient($this->getClient(), $patient); //Create new patient object, contains all tasks
             if (!$this->checkRecordExist($patient['user']['uuid'])) { //Check if this patient is already saved within redcap
@@ -197,7 +199,10 @@ class DataImport
                             if (isset($measurement['media']['href'])) { //Photo
                                 $measurement['record_id'] = $patient->getPatientJson()['user']['uuid'];
                                 $measurement['event_name'] = $map['event_name'];
-                                $measurement['prefix'] = $map['prefix'];
+                                if($map['description'] === 'CHILD SIGNATURE REQUIRED - Child assent form') //only exception, have to route children consent to different field in the same instrument
+                                    $measurement['prefix'] = "c_child_";
+                                else
+                                    $measurement['prefix'] = $map['prefix'];
                                 $this->setPostProcessedFiles($measurement);
                             } elseif (isset($measurement['text'])) {
                                 $form_data[$prefix . 'submission_text'] = $measurement['text']; //Text response
@@ -307,6 +312,11 @@ class DataImport
     {
         $map = $this->getMap();
         $ignore = $this->getIgnoreList();
+//        if($task['activityUuid'] === 'act-qynuiPpTEZ8yZnYjukDTjw' ||
+//            $task['activityUuid'] === 'act-Sm_98nPEdZ6mt_1HmhfcFw' ||
+//            $task['activityUuid'] === 'act-Ta4pcKevWd5Qh_igM5qXpA' ||
+//            $task['activityUuid'] === 'act-oCWpL5rzrcyJAwNrMG2mYQ')
+//            $b = 1;
 
         if(isset($ignore[$task['activityUuid']])) //If task id is in ignore list, skip without logging
             return [];

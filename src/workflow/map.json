@@ -24,6 +24,26 @@
         "event_name": "baseline_arm_1",
         "description": "Review and Sign Informed Consent (2 Tests)"
     },
+    "act-oCWpL5rzrcyJAwNrMG2mYQ": {
+        "prefix": "c_",
+        "event_name": "baseline_arm_1",
+        "description": "Description Review and Sign Informed Consent (new)"
+    },
+    "act-Ta4pcKevWd5Qh_igM5qXpA": {
+        "prefix": "rs_",
+        "event_name": "baseline_arm_1",
+        "description": "Review and Sign HIPAA Authorization (new)"
+    },
+    "act-qynuiPpTEZ8yZnYjukDTjw": {
+        "prefix": "c_",
+        "event_name": "baseline_arm_1",
+        "description": "CHILD SIGNATURE REQUIRED - Child assent form"
+    },
+    "act-Sm_98nPEdZ6mt_1HmhfcFw": {
+        "prefix": "c_",
+        "event_name": "baseline_arm_1",
+        "description": "ADULT SIGNATURE REQUIRED - Informed Consent"
+    },
     "sv-Nel2D9xL3s2Dlr49Zl24SL3fk3Z21wk": {
         "prefix": "gs_",
         "event_name": "baseline_arm_1",
@@ -99,4 +119,6 @@
         "event_name": "baseline_arm_1",
         "description": "Usability"
     }
+
+
 }
