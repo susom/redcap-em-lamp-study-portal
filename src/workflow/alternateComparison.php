@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         filter_var($_POST['seal'], FILTER_SANITIZE_STRING)
 
     );
+    exit();
 }
 
 

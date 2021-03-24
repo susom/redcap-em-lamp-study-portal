@@ -235,21 +235,20 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
                 if($doc_temp_path) {
                     $binary = file_get_contents($doc_temp_path);
                     unlink($doc_temp_path);
+                    $pic_info = array(
+                        'task_uuid' => $record["task_uuid"],
+                        'user_uuid' => $record["patient_uuid"],
+                        'photo_binary' => empty($binary) ? null : $this->generateDataURI($binary)
+                    );
+
+                    $this->emLog("Pushing to frontend: task_uuid: " .
+                        $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
+                        'photoBinary: ' . strlen($pic_info['photo_binary'] ) .' len characters'
+                    );
+
+                    array_push($payload, $pic_info);
                 }
 
-
-                $pic_info = array(
-                    'task_uuid' => $record["task_uuid"],
-                    'user_uuid' => $record["patient_uuid"],
-                    'photo_binary' => empty($binary) ? null : $this->generateDataURI($binary)
-                );
-
-                $this->emLog("Pushing to frontend: task_uuid: " .
-                    $record->task_uuid . ' user_uuid: ' . $record->patient_uuid,
-                    'photoBinary: ' . strlen($pic_info['photo_binary'] ) .' len characters'
-                );
-
-                array_push($payload, $pic_info);
             }
 
             return $payload;

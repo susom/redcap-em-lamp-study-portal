@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         filter_var($_POST['volume'], FILTER_SANITIZE_STRING),
         filter_var($_POST['disc'], FILTER_SANITIZE_STRING),
         filter_var($_POST['seal'], FILTER_SANITIZE_STRING)
-
     );
+    exit();
 }
 
 
