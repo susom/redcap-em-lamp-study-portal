@@ -13,7 +13,7 @@ require_once "src/Task.php";
 require_once "src/Media.php";
 require_once "src/workflow/ImageAdjudication.php";
 require_once "src/workflow/DataImport.php";
-
+require_once "src/workflow/AlternateAdjudication.php";
 
 define("BASE_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/");
 define("FULL_PATTERN_HEALTH_API_URL", "https://api.patternhealth.io/api/");
@@ -88,6 +88,21 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    //For one off alternate adjudication only: initializes alternate adjudication workflow.
+    public function alternateInitialize()
+    {
+        $this->setClient(
+            new Client(
+                $this,
+                $this->getProjectSetting('study-group'),
+                $this->getProjectSetting('authentication-email'),
+                $this->getProjectSetting('authentication-password'),
+                $this->getProjectSetting('current-token'),
+                $this->getProjectSetting('token-expiration'))
+        );
+        $this->setWorkflow(new AlternateAdjudication($this->getClient()));
+    }
+
     // Refresh user survey responses re
     public function refreshUserSurveyResponse()
     {
@@ -134,6 +149,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             return $link;
 
         if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
+            return $link;
+
+        if($workflow == "image_adjudication_alternate" && $link["name"] == "Image adjudication alternate")
             return $link;
 
 //        if($workflow == "lazy_import" && $link["name"] == "Trigger data refresh")
@@ -211,10 +229,13 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $payload = array();
             foreach($records as $index => $record) {
                 $doc_id = $record["image_file"];
-
                 $doc_temp_path = \Files::copyEdocToTemp($doc_id, false, true);
-                $binary = file_get_contents($doc_temp_path);
-                unlink($doc_temp_path);
+                $binary = null;
+
+                if($doc_temp_path) {
+                    $binary = file_get_contents($doc_temp_path);
+                    unlink($doc_temp_path);
+                }
 
 
                 $pic_info = array(

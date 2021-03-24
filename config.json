@@ -47,6 +47,10 @@
                 {
                     "value": "lazy_import",
                     "name": "Lazy Patient Import"
+                },
+                {
+                    "value": "image_adjudication_alternate",
+                    "name": "Alternate Adjudication"
                 }
             ]
         },
@@ -100,6 +104,11 @@
                 "name": "Trigger image scan",
                 "icon": "gear",
                 "url": "src/workflow/cronImageScanner.php"
+            },
+            {
+                "name": "Image adjudication alternate",
+                "icon": "gear",
+                "url": "src/workflow/alternateComparison.php"
             }
 
         ]
