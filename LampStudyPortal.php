@@ -143,17 +143,17 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
      * @return $link sidebar link
      */
     public function redcap_module_link_check_display($pid, $link){
-        $workflow = $this->getProjectSetting("workflow");
+        if($pid) { //Landing page hook via every_page_top calls this function. Resulting in PID = NULL triggering error
+            $workflow = $this->getProjectSetting("workflow");
+            if($workflow == "image_adjudication" && $link["name"] == "Image adjudication client")
+                return $link;
 
-        if($workflow == "image_adjudication" && $link["name"] == "Image adjudication client")
-            return $link;
+            if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
+                return $link;
 
-        if($workflow == "image_adjudication" && $link["name"] == "Trigger image scan")
-            return $link;
-
-        if($workflow == "image_adjudication_alternate" && $link["name"] == "Image adjudication alternate")
-            return $link;
-
+            if($workflow == "image_adjudication_alternate" && $link["name"] == "Image adjudication alternate")
+                return $link;
+        }
 //        if($workflow == "lazy_import" && $link["name"] == "Trigger data refresh")
 //            return $link;
 //
