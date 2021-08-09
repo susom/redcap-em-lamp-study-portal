@@ -43,7 +43,7 @@ class Media
         $this->setTitle($title);
         $this->setClient($client);
         $this->setApiEndpoint($api_endpoint);
-        $this->setBinary($this->getClient()->request('GET', BASE_PATTERN_HEALTH_API_URL . ltrim($this->getApiEndpoint(), '/')));
+        $this->setBinary($this->getClient()->createRequest('GET', BASE_PATTERN_HEALTH_API_URL . ltrim($this->getApiEndpoint(), '/')));
         // Other code to run when object is instantiated
     }
 

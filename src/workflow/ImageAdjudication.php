@@ -151,7 +151,7 @@ class ImageAdjudication
                         'body' => json_encode($update_json, JSON_UNESCAPED_SLASHES)
                     ];
 
-                    $response = $this->getClient()->request(
+                    $response = $this->getClient()->createRequest(
                         'put',
                         FULL_PATTERN_HEALTH_API_URL . 'users/' . $user_uuid . '/tasks/' . $record_data->provider_task_uuid . '?adminOverride=true&hideProviderTasks=false',
                         $options
@@ -328,7 +328,7 @@ class ImageAdjudication
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request(
+            $this->patients = $this->getClient()->createRequest(
                 'get',
                 FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members?includePlans=false&adherenceDays=0&sortBy=TODO&sortDirection=DESC&offset=0');
         } else {
@@ -349,7 +349,7 @@ class ImageAdjudication
      */
     public function setProviderSurvey($surveyUUID)
     {
-        $this->provider_survey = $this->getClient()->request(
+        $this->provider_survey = $this->getClient()->createRequest(
             'get',
             FULL_PATTERN_HEALTH_API_URL . 'surveys/' . $surveyUUID . '/latest');
     }

@@ -176,9 +176,9 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
         foreach($projects as $index => $project_id){
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
-            $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+            $client->createRequest('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
 //            try{
-//                $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+//                $client->createRequest('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
 //            } catch (\Exception $e) {
 //                $this->emError($project_id, $e->getMessage(), debug_backtrace(0));
 //            }
@@ -201,7 +201,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
             $thisUrl = $url . "&pid=$project_id"; //project specific
             $client = new \GuzzleHttp\Client();
             try {
-                $client->request('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
+                $client->createRequest('GET', $thisUrl, array(\GuzzleHttp\RequestOptions::SYNCHRONOUS => true));
             } catch (\Exception $e) {
                 $this->emError($project_id, $e->getMessage(), debug_backtrace(0));
             }
@@ -316,7 +316,7 @@ class LampStudyPortal extends \ExternalModules\AbstractExternalModule
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request(
+            $this->patients = $this->getClient()->createRequest(
                 'get',
                 FULL_PATTERN_HEALTH_API_URL . 'groups/' . $this->getClient()->getGroup() . '/members');
         } else {

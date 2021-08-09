@@ -72,7 +72,7 @@ class Client extends \GuzzleHttp\Client
             'email' => $this->getEmail(),
             'password' => $this->getPassword()
         );
-        $result = $this->request('post', FULL_PATTERN_HEALTH_API_URL . 'auth/login',
+        $result = $this->createRequest('post', FULL_PATTERN_HEALTH_API_URL . 'auth/login',
             ['json' => $body,
                 #'debug' => true,
                 'headers' => ['Content-Type' => 'application/json']
@@ -83,7 +83,7 @@ class Client extends \GuzzleHttp\Client
         $this->getEm()->updateTokenInfo();
     }
 
-    public function request($method, $uri = '', array $options = [], $refreshed = false)
+    public function createRequest($method, $uri = '', array $options = [], $refreshed = false)
     {
         try {
             // make it easy to make call without passing token
@@ -108,7 +108,7 @@ class Client extends \GuzzleHttp\Client
                 if (!$refreshed && empty($options)) {
                     $this->generateBearerToken();
 
-                    return $this->request($method, $uri, $options, true);
+                    return $this->createRequest($method, $uri, $options, true);
                 }
                 throw new \Exception("cant make request!");
             }
@@ -117,11 +117,13 @@ class Client extends \GuzzleHttp\Client
             if (!$refreshed) {
                 $this->generateBearerToken();
 
-                return $this->request($method, $uri, $options, true);
+                return $this->createRequest($method, $uri, $options, true);
             } else {
                 echo $e->getMessage();
             }
         } catch (\Exception $e) {
+            return $e->getMessage();
+        } catch (GuzzleException $e) {
             return $e->getMessage();
         }
 

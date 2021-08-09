@@ -247,7 +247,7 @@ class Patient
         // first time just make api call to get the tasks for this patient otherwise update existing ones.
         if (empty($tasks)) {
             $uuid = $this->getPatientJson()['user']['uuid'];
-            $this->tasks = $this->getClient()->request('get', FULL_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks?includeMeasurements=true&excludeBiometricMeasurements=false&includeInactivePlanTasks=true&hideProviderTasks=false&includeSurveyElements=false');
+            $this->tasks = $this->getClient()->createRequest('get', FULL_PATTERN_HEALTH_API_URL . 'users/' . $uuid . '/tasks?includeMeasurements=true&excludeBiometricMeasurements=false&includeInactivePlanTasks=true&hideProviderTasks=false&includeSurveyElements=false');
         } else {
             $this->tasks = $tasks;
         }

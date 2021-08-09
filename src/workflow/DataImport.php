@@ -72,7 +72,7 @@ class DataImport
     public function runPatientIteration($patients, $offset = 0)
     {
         if($offset !== 0)
-            $patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . "/members?limit=200&offset=$offset");
+            $patients = $this->getClient()->createRequest('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . "/members?limit=200&offset=$offset");
 
         foreach ($patients['results'] as $index => $patient) {
             sleep(1);
@@ -440,7 +440,7 @@ class DataImport
     public function setPatients($patients = array())
     {
         if (empty($patients)) {
-            $this->patients = $this->getClient()->request('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . '/members?limit=200');
+            $this->patients = $this->getClient()->createRequest('get', BASE_PATTERN_HEALTH_API_URL . 'api/groups/' . $this->getClient()->getGroup() . '/members?limit=200');
         } else {
             $this->patients = $patients;
         }
